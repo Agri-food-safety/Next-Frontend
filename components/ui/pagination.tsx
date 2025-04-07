@@ -1,18 +1,101 @@
+"use client"
+
 import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { ButtonProps, buttonVariants } from "@/components/ui/button"
+import { Button, ButtonProps, buttonVariants } from "@/components/ui/button"
 
-const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
-  <nav
-    role="navigation"
-    aria-label="pagination"
-    className={cn("mx-auto flex w-full justify-center", className)}
-    {...props}
-  />
-)
-Pagination.displayName = "Pagination"
+interface PaginationProps {
+  currentPage: number
+  totalPages: number
+  onPageChange: (page: number) => void
+}
+
+export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
+  // Create an array of page numbers to display
+  const getPageNumbers = () => {
+    const pages = []
+    
+    // Always show first page
+    pages.push(1)
+    
+    // Calculate range around current page
+    let start = Math.max(2, currentPage - 1)
+    let end = Math.min(totalPages - 1, currentPage + 1)
+    
+    // Add ellipsis after first page if needed
+    if (start > 2) {
+      pages.push('ellipsis-start')
+    }
+    
+    // Add pages in range
+    for (let i = start; i <= end; i++) {
+      pages.push(i)
+    }
+    
+    // Add ellipsis before last page if needed
+    if (end < totalPages - 1) {
+      pages.push('ellipsis-end')
+    }
+    
+    // Always show last page if there's more than one page
+    if (totalPages > 1) {
+      pages.push(totalPages)
+    }
+    
+    return pages
+  }
+  
+  const pageNumbers = getPageNumbers()
+
+  return (
+    <nav className="flex items-center space-x-1">
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+      >
+        <ChevronLeft className="h-4 w-4" />
+        <span className="sr-only">Previous page</span>
+      </Button>
+      
+      {pageNumbers.map((page, i) => {
+        if (page === 'ellipsis-start' || page === 'ellipsis-end') {
+          return (
+            <Button key={`ellipsis-${i}`} variant="outline" size="icon" disabled>
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">More pages</span>
+            </Button>
+          )
+        }
+        
+        const pageNum = page as number
+        return (
+          <Button
+            key={pageNum}
+            variant={pageNum === currentPage ? "default" : "outline"}
+            size="icon"
+            onClick={() => onPageChange(pageNum)}
+          >
+            {pageNum}
+          </Button>
+        )
+      })}
+      
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+      >
+        <ChevronRight className="h-4 w-4" />
+        <span className="sr-only">Next page</span>
+      </Button>
+    </nav>
+  )
+}
 
 const PaginationContent = React.forwardRef<
   HTMLUListElement,
@@ -107,7 +190,7 @@ const PaginationEllipsis = ({
 PaginationEllipsis.displayName = "PaginationEllipsis"
 
 export {
-  Pagination,
+  // Pagination,
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,

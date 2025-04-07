@@ -1,18 +1,11 @@
 "use client";
-import { useState } from 'react';
-import { mockReports, plantTypes, states, Report } from '@/lib/mock-data';
-import { format } from 'date-fns';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import type { Metadata } from "next"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import { ReportsHeader } from "@/components/dashboard/reports/header"
 import { ReportsTable } from "@/components/dashboard/reports/table"
 import { ReportsFilter } from "@/components/dashboard/reports/filter"
-
-// export const metadata: Metadata = {
-//   title: "Reports | AgriScan",
-//   description: "View all submitted plant health reports",
-// }
+import { useReports } from "@/hooks/use-reports";
 
 export default function ReportsPage() {
   const [filters, setFilters] = useState({
@@ -22,25 +15,60 @@ export default function ReportsPage() {
     state: '',
     status: ''
   });
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
-  const filteredReports = mockReports.filter(report => {
-    const reportDate = new Date(report.timestamp);
-    const matchesDateFrom = !filters.dateFrom || reportDate >= new Date(filters.dateFrom);
-    const matchesDateTo = !filters.dateTo || reportDate <= new Date(filters.dateTo);
-    const matchesPlantType = !filters.plantType || report.plantType === filters.plantType;
-    const matchesState = !filters.state || report.state === filters.state;
-    const matchesStatus = !filters.status || report.status === filters.status;
+  // Convert filters to API parameters
+  const getFilterParams = () => {
+    const params: Record<string, any> = {
+      page: currentPage,
+      page_size: pageSize
+    };
+    
+    if (filters.dateFrom) params.date_from = filters.dateFrom;
+    if (filters.dateTo) params.date_to = filters.dateTo;
+    if (filters.plantType) params.plant_type = filters.plantType;
+    if (filters.state) params.state = filters.state;
+    if (filters.status) params.status = filters.status;
+    
+    return params;
+  };
 
-    return matchesDateFrom && matchesDateTo && matchesPlantType && matchesState && matchesStatus;
-  });
+  // Use the reports hook with our filter parameters
+  const { reports, totalCount, isLoading, error, fetchReports } = useReports(getFilterParams());
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Refetch when filters or page changes
+  useEffect(() => {
+    fetchReports(getFilterParams());
+  }, [filters, currentPage]);
+
+  // Handle filter changes from filter component
+  const handleFilterChange = (newFilters: typeof filters) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page on filter change
+  };
 
   return (
     <ProtectedRoute>
       <div className="flex flex-col gap-6 p-6">
         <ReportsHeader />
-        <ReportsFilter />
-        <ReportsTable />
+        <ReportsFilter onFilterChange={handleFilterChange} />
+        <ReportsTable 
+          reports={reports || []}
+          isLoading={isLoading}
+          error={error}
+          totalCount={totalCount}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={handlePageChange}
+        />
       </div>
     </ProtectedRoute>
-  )
+  );
 }
