@@ -21,6 +21,7 @@ interface LoginResponseData {
   phone: string;
   fullName: string;
   role: string;
+  access_token: string;
 }
 
 interface ProfileResponseData {
@@ -75,7 +76,7 @@ export const authAPI = {
     const response = await api.post<ApiResponse<LoginResponseData>>('/auth/login/', credentials);
     // Store token in localStorage if it exists in the response
     if (response.data) {
-      localStorage.setItem('authToken', response.data.data.userId);
+      localStorage.setItem('authToken', response.data.data.access_token);
     }
     return response.data;
   },
@@ -87,7 +88,7 @@ export const authAPI = {
     phone: string; password: string; fullName: string; role: string;
     city: string; state: string; gpsLat: number; gpsLng: number;
   }) => api.post('/auth/register/', userData),
-  getProfile: () => api.get<ApiResponse<ProfileResponseData>>('/auth/profile'),
+  getProfile: (userId?: string) => api.get<ApiResponse<ProfileResponseData>>(`/auth/profile/`),
   updateProfile: (profileData: Partial<ProfileResponseData>) => 
     api.put<ApiResponse<ProfileResponseData>>('/auth/profile', profileData),
 };

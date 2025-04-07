@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, createContext, useContext } from 'react'
+import React, { createContext, useState, useContext } from 'react'
 
 type ToastType = 'default' | 'destructive' | 'success' | 'warning'
 
@@ -50,9 +50,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     )
   }
 
-  const contextValue = { toasts, addToast, removeToast, updateToast }
-  
-  return { Provider: ToastContext.Provider, contextValue, children }
+  return (
+    <ToastContext.Provider value={{ toasts, addToast, removeToast, updateToast }}>
+      {children}
+    </ToastContext.Provider>
+  )
 }
 
 export function useToast() {

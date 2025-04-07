@@ -36,11 +36,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async function loadUser() {
       try {
         const token = localStorage.getItem('authToken');
-        if (token) {
+        console.log("Token", token)
+        if (token) {  
           const { data } = await authAPI.getProfile();
+          console.log("data", data)
           setUser(data.data);
         }
       } catch (error) {
+        console.log(error)
         localStorage.removeItem('authToken');
       } finally {
         setLoading(false);
@@ -51,13 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (phone: string, password: string) => {
     try {
-      const { data } = await authAPI.login({ phone, password });
+      const { success, data } = await authAPI.login({ phone, password });
       console.log('Login successful:', data);
-      if (data.userId) {
-        localStorage.setItem('authToken', data.userId);
+      if (success) {
+        localStorage.setItem('authToken', data.access_token);
         setUser(data);
-        // router.push('/dashboard');
-        // router.refresh();
+        router.push('/dashboard');
+        router.refresh();
       }
     } catch (error) {
       console.error('Login error:', error);

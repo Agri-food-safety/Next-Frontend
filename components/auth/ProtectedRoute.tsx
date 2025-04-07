@@ -11,9 +11,11 @@ export default function ProtectedRoute({
   requiredRole?: string
 }) {
   const { user, isAuthenticated, loading } = useAuth()
+
   const router = useRouter()
 
   useEffect(() => {
+    console.log("Auth", isAuthenticated, loading)
     if (!loading && !isAuthenticated) {
       router.push('/login')
     }
