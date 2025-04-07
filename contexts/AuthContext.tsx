@@ -16,24 +16,13 @@ interface User {
   lastActive?: string;
 }
 
-interface LoginResponse {
-  success: boolean;
-  data: User;
-  token: string;
-}
-
-interface ProfileResponse {
-  success: boolean;
-  data: User;
-}
-
 interface AuthContextType {
   user: User | null;
   login: (phone: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   loading: boolean;
-  updateProfile: (profileData: Partial<User>) => Promise<void>; // Add update function type
+  updateProfile: (profileData: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -48,10 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const token = localStorage.getItem('authToken');
         if (token) {
-          const response = (await authAPI.getProfile()).data as ProfileResponse;
-          if (response.success) {
-            setUser(response.data);
-          }
+          const { data } = await authAPI.getProfile();
+          setUser(data.data);
         }
       } catch (error) {
         localStorage.removeItem('authToken');
@@ -65,12 +52,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (phone: string, password: string) => {
     try {
       const { data } = await authAPI.login({ phone, password });
-      if (data.success) {
-        localStorage.setItem('authToken', data.token);
-        setUser(data.data);
-        router.push('/dashboard');
+      console.log('Login successful:', data);
+      if (data.userId) {
+        localStorage.setItem('authToken', data.userId);
+        setUser(data);
+        // router.push('/dashboard');
+        // router.refresh();
       }
     } catch (error) {
+      console.error('Login error:', error);
       throw error;
     }
   };
@@ -83,22 +73,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateProfile = async (profileData: Partial<User>) => {
     try {
-      // Filter out non-updatable fields like phone, role, userId etc.
-      const updatableData = {
-        fullName: profileData.fullName,
-        city: profileData.city,
-        state: profileData.state,
-        gpsLat: profileData.gpsLat,
-        gpsLng: profileData.gpsLng,
-      };
-      // Ensure API call returns the updated profile data structure
-      const response = await authAPI.updateProfile(updatableData); 
-      // Assuming response structure matches ProfileResponse after update
-      const updatedUser = response.data as User; 
-      setUser(updatedUser); // Update user state with fresh data from API
+      const { data } = await authAPI.updateProfile(profileData);
+      setUser(data.data);
     } catch (error) {
       console.error("Failed to update profile:", error);
-      throw error; // Re-throw to be handled by the component
+      throw error;
     }
   };
 
@@ -110,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         isAuthenticated: !!user,
         loading,
-        updateProfile, // Provide the update function
+        updateProfile,
       }}
     >
       {children}

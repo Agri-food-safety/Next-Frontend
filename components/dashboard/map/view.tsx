@@ -1,135 +1,62 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect, useRef, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Maximize2, Minimize2 } from "lucide-react"
+import { Maximize2, Minimize2, Filter, X } from "lucide-react"
 import dynamic from "next/dynamic"
+import { useReports } from "@/hooks/use-reports"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-// Dynamically import Leaflet components with no SSR to avoid hydration issues
+// Dynamically import Leaflet components with no SSR
 const MapContainer = dynamic(() => import("react-leaflet").then((mod) => mod.MapContainer), { ssr: false })
 const TileLayer = dynamic(() => import("react-leaflet").then((mod) => mod.TileLayer), { ssr: false })
-const Marker = dynamic(() => import("react-leaflet").then((mod) => mod.Marker), { ssr: false })
-const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr: false })
 const CircleMarker = dynamic(() => import("react-leaflet").then((mod) => mod.CircleMarker), { ssr: false })
+const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr: false })
 const ZoomControl = dynamic(() => import("react-leaflet").then((mod) => mod.ZoomControl), { ssr: false })
 
-// Sample data for map markers
-const mapPoints = [
-  {
-    id: 1,
-    position: [8.5, -1.2],
-    severity: "high",
-    condition: "Leaf Blight",
-    region: "Northern Region",
-    reports: 24,
-  },
-  {
-    id: 2,
-    position: [7.8, 1.5],
-    severity: "medium",
-    condition: "Drought Stress",
-    region: "Eastern Region",
-    reports: 18,
-  },
-  {
-    id: 3,
-    position: [6.2, -2.8],
-    severity: "low",
-    condition: "Rust",
-    region: "Western Region",
-    reports: 12,
-  },
-  {
-    id: 4,
-    position: [5.5, 0.2],
-    severity: "high",
-    condition: "Pest Infestation",
-    region: "Southern Region",
-    reports: 31,
-  },
-  {
-    id: 5,
-    position: [7.1, -0.5],
-    severity: "medium",
-    condition: "Powdery Mildew",
-    region: "Central Region",
-    reports: 15,
-  },
-  {
-    id: 6,
-    position: [8.2, -0.8],
-    severity: "high",
-    condition: "Leaf Blight",
-    region: "Northern Region",
-    reports: 19,
-  },
-  {
-    id: 7,
-    position: [7.5, 1.2],
-    severity: "medium",
-    condition: "Drought Stress",
-    region: "Eastern Region",
-    reports: 14,
-  },
-  {
-    id: 8,
-    position: [6.5, -2.5],
-    severity: "low",
-    condition: "Rust",
-    region: "Western Region",
-    reports: 8,
-  },
-  {
-    id: 9,
-    position: [5.8, 0.5],
-    severity: "high",
-    condition: "Pest Infestation",
-    region: "Southern Region",
-    reports: 27,
-  },
-  {
-    id: 10,
-    position: [7.3, -0.3],
-    severity: "low",
-    condition: "Powdery Mildew",
-    region: "Central Region",
-    reports: 11,
-  },
-]
+// Severity color mapping
+const SEVERITY_COLORS = {
+  high: "#ef4444", // red-500
+  medium: "#f59e0b", // amber-500
+  low: "#10b981", // green-500
+  default: "#6366f1" // indigo-500
+}
 
 // Get color based on severity
 function getSeverityColor(severity: string) {
-  switch (severity.toLowerCase()) {
-    case "high":
-      return "#ef4444" // red-500
-    case "medium":
-      return "#f59e0b" // amber-500
-    case "low":
-      return "#10b981" // green-500
-    default:
-      return "#6366f1" // indigo-500
-  }
+  return SEVERITY_COLORS[severity.toLowerCase() as keyof typeof SEVERITY_COLORS] || SEVERITY_COLORS.default
 }
 
 export function MapView() {
   const mapRef = useRef<HTMLDivElement>(null)
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [isClient, setIsClient] = useState(false)
+  const [selectedRegion, setSelectedRegion] = useState<string>("all")
+  const [selectedSeverity, setSelectedSeverity] = useState<string>("all")
+  const [showFilters, setShowFilters] = useState(false)
+  
+  // Fetch reports data
+  const { data: reports, isLoading } = useReports()
+  
+  // Get unique regions from reports
+  const regions = Array.from(new Set(reports?.map(report => report.region) || []))
+  
+  // Filter reports based on selections
+  const filteredReports = reports?.filter(report => {
+    const regionMatch = selectedRegion === "all" || report.region === selectedRegion
+    const severityMatch = selectedSeverity === "all" || report.severity === selectedSeverity
+    return regionMatch && severityMatch
+  }) || []
 
-  // Set isClient to true on component mount
   useEffect(() => {
     setIsClient(true)
   }, [])
 
-  // Toggle full screen mode
-  const toggleFullScreen = () => {
-    setIsFullScreen(!isFullScreen)
-  }
+  const toggleFullScreen = () => setIsFullScreen(!isFullScreen)
+  const toggleFilters = () => setShowFilters(!showFilters)
 
-  // Define map styles based on full screen state
   const mapContainerStyle = isFullScreen
     ? {
         position: "fixed",
@@ -167,29 +94,29 @@ export function MapView() {
               />
               <ZoomControl position="bottomright" />
 
-              {mapPoints.map((point) => (
+              {filteredReports.map((report) => (
                 <CircleMarker
-                  key={point.id}
-                  center={point.position as [number, number]}
-                  radius={point.severity === "high" ? 12 : point.severity === "medium" ? 10 : 8}
+                  key={report.id}
+                  center={[report.latitude, report.longitude]}
+                  radius={report.severity === "high" ? 12 : report.severity === "medium" ? 10 : 8}
                   pathOptions={{
-                    fillColor: getSeverityColor(point.severity),
-                    color: getSeverityColor(point.severity),
+                    fillColor: getSeverityColor(report.severity),
+                    color: getSeverityColor(report.severity),
                     fillOpacity: 0.7,
                     weight: 1,
                   }}
                 >
                   <Popup>
                     <div className="p-1">
-                      <h3 className="font-medium">{point.condition}</h3>
-                      <p className="text-sm text-muted-foreground">Region: {point.region}</p>
-                      <p className="text-sm text-muted-foreground">Reports: {point.reports}</p>
+                      <h3 className="font-medium">{report.condition}</h3>
+                      <p className="text-sm text-muted-foreground">Region: {report.region}</p>
+                      <p className="text-sm text-muted-foreground">Date: {new Date(report.date).toLocaleDateString()}</p>
                       <p className="mt-1 flex items-center text-sm">
                         <span
                           className="mr-1 inline-block h-2 w-2 rounded-full"
-                          style={{ backgroundColor: getSeverityColor(point.severity) }}
+                          style={{ backgroundColor: getSeverityColor(report.severity) }}
                         ></span>
-                        <span className="capitalize">{point.severity} Severity</span>
+                        <span className="capitalize">{report.severity} Severity</span>
                       </p>
                     </div>
                   </Popup>
@@ -206,6 +133,50 @@ export function MapView() {
             >
               {isFullScreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             </Button>
+
+            {/* Filter toggle button */}
+            <Button
+              variant="secondary"
+              size="icon"
+              className="absolute right-4 top-16 z-10 bg-white shadow-md hover:bg-green-50"
+              onClick={toggleFilters}
+            >
+              {showFilters ? <X className="h-4 w-4" /> : <Filter className="h-4 w-4" />}
+            </Button>
+
+            {/* Filters panel */}
+            {showFilters && (
+              <div className="absolute left-4 top-4 z-10 flex flex-col gap-4 rounded-md bg-white p-4 shadow-md">
+                <div className="space-y-2">
+                  <Label className="text-sm">Region</Label>
+                  <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="All Regions" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Regions</SelectItem>
+                      {regions.map(region => (
+                        <SelectItem key={region} value={region}>{region}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">Severity</Label>
+                  <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="All Severities" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Severities</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
 
             {/* Legend */}
             <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
@@ -232,4 +203,3 @@ export function MapView() {
     </Card>
   )
 }
-

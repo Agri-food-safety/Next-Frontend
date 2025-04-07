@@ -2,6 +2,12 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.agriscan.app/v1';
 
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  // token?: string;
+}
+
 interface ApiError {
   error: {
     code: string;
@@ -10,31 +16,24 @@ interface ApiError {
   };
 }
 
-interface LoginResponse {
-  success: boolean;
-  data: {
-    userId: string;
-    phone: string;
-    fullName: string;
-    role: string;
-  };
-  token: string;
+interface LoginResponseData {
+  userId: string;
+  phone: string;
+  fullName: string;
+  role: string;
 }
 
-interface ProfileResponse {
-  success: boolean;
-  data: {
-    userId: string;
-    phone: string;
-    fullName: string;
-    role: string;
-    city: string;
-    state: string;
-    gpsLat: number;
-    gpsLng: number;
-    createdAt: string;
-    lastActive: string;
-  };
+interface ProfileResponseData {
+  userId: string;
+  phone: string;
+  fullName: string;
+  role: string;
+  city: string;
+  state: string;
+  gpsLat: number;
+  gpsLng: number;
+  createdAt: string;
+  lastActive: string;
 }
 
 const api = axios.create({
@@ -58,9 +57,13 @@ api.interceptors.request.use(
 
 // Response interceptor to handle errors
 api.interceptors.response.use(
-  (response: { data: any }) => response.data,
-  (error: { response?: { data: ApiError } }) => {
+  (response) => response,
+  (error) => {
     if (error.response) {
+      // If unauthorized, clear token
+      if (error.response.status === 401) {
+        localStorage.removeItem('authToken');
+      }
       return Promise.reject(error.response.data);
     }
     return Promise.reject(error);
@@ -68,39 +71,29 @@ api.interceptors.response.use(
 );
 
 export const authAPI = {
-  login: (credentials: { phone: string; password: string }) =>
-    api.post<LoginResponse>('/auth/login', credentials),
+  login: async (credentials: { phone: string; password: string }) => {
+    const response = await api.post<ApiResponse<LoginResponseData>>('/auth/login/', credentials);
+    // Store token in localStorage if it exists in the response
+    if (response.data) {
+      localStorage.setItem('authToken', response.data.data.userId);
+    }
+    return response.data;
+  },
+  logout: () => {
+    localStorage.removeItem('authToken');
+    return Promise.resolve();
+  },
   register: (userData: {
-    phone: string;
-    password: string;
-    fullName: string;
-    role: string;
-    city: string;
-    state: string;
-    gpsLat: number;
-    gpsLng: number;
-  }) => api.post('/auth/register', userData),
-  getProfile: () => api.get('/auth/profile'),
-  updateProfile: (profileData: {
-    fullName?: string;
-    city?: string;
-    state?: string;
-    gpsLat?: number;
-    gpsLng?: number;
-  }) => api.put('/auth/profile', profileData),
+    phone: string; password: string; fullName: string; role: string;
+    city: string; state: string; gpsLat: number; gpsLng: number;
+  }) => api.post('/auth/register/', userData),
+  getProfile: () => api.get<ApiResponse<ProfileResponseData>>('/auth/profile'),
+  updateProfile: (profileData: Partial<ProfileResponseData>) => 
+    api.put<ApiResponse<ProfileResponseData>>('/auth/profile', profileData),
 };
 
 export const reportsAPI = {
-  getReports: (params?: {
-    page?: number;
-    limit?: number;
-    status?: string;
-    plantTypeId?: string;
-    state?: string;
-    city?: string;
-    startDate?: string;
-    endDate?: string;
-  }) => api.get('/reports', { params }),
+  getReports: (params?: any) => api.get('/reports', { params }),
   getReportDetails: (reportId: string) => api.get(`/reports/${reportId}`),
   submitReport: (formData: FormData) =>
     api.post('/reports', formData, {
