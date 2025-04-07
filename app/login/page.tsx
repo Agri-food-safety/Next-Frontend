@@ -63,13 +63,13 @@ export default function LoginPage() {
             {/* Image section - hidden on small screens */}
             <div className="hidden md:block md:col-span-2 relative">
               <div className="absolute inset-0">
-                <Image 
+                {/* <Image 
                   src="/images/auth/farming-login.jpg" 
-                  alt="Sustainable farming" 
+                  // alt="Sustainable farming" 
                   fill 
                   className="object-cover"
                   priority
-                />
+                /> */}
                 <div className="absolute inset-0 bg-gradient-to-r from-green-600/70 to-green-800/70 mix-blend-multiply" />
               </div>
               <div className="absolute inset-0 flex items-center justify-center p-6">
