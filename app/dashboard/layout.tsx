@@ -93,7 +93,7 @@ export default function DashboardLayout({
 
   return (
     <AuthProvider>
-      <div className="w-full flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 relative overflow-hidden">
+      <div className="w-full flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 relative overflow-hidden" data-dashboard="true">
         {/* Background patterns */}
         <div className="pattern-grid absolute inset-0 opacity-[0.02] dark:opacity-[0.04] pointer-events-none"></div>
         <div className="pattern-dots absolute inset-0 opacity-10 pointer-events-none"></div>
@@ -279,7 +279,7 @@ export default function DashboardLayout({
           {/* Main content area */}
           <main className="flex-1 overflow-y-auto pb-10 w-full relative z-0">
             {/* Content container */}
-            <div className="relative z-10 w-full">
+            <div className="relative z-10 w-full dashboard-content">
               {children}
             </div>
           </main>

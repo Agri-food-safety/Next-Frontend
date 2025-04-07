@@ -22,7 +22,7 @@ export function DashboardHeader() {
   }
 
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-green-100 shadow-sm">
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white/50 backdrop-blur-sm rounded-xl p-4 border shadow-sm dark:bg-secondary/10">
       <div>
         <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
           Dashboard
@@ -33,7 +33,7 @@ export function DashboardHeader() {
         <Button
           variant="outline"
           size="sm"
-          className="border-green-200 hover:bg-green-50 hover:text-green-600 transition-colors"
+          className="border-green-200  dark:border-secondary/10 hover:bg-green-50 hover:text-green-600 transition-colors"
         >
           <Filter className="mr-2 h-4 w-4" />
           Filter
@@ -41,7 +41,7 @@ export function DashboardHeader() {
         <Button
           variant="outline"
           size="sm"
-          className="border-green-200 hover:bg-green-50 hover:text-green-600 transition-colors"
+          className="border-green-200  dark:border-secondary/10 hover:bg-green-50 hover:text-green-600 transition-colors"
         >
           <Download className="mr-2 h-4 w-4" />
           Export
@@ -53,7 +53,7 @@ export function DashboardHeader() {
             <Button
               variant="outline"
               size="icon"
-              className="relative border-green-200 hover:bg-green-50 hover:text-green-600 transition-colors"
+              className=" dark:border-secondary/10 relative border-green-200 hover:bg-green-50 hover:text-green-600 transition-colors"
             >
               <Bell className="h-4 w-4" />
               <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
@@ -94,7 +94,7 @@ export function DashboardHeader() {
             <Button
               variant="outline"
               size="icon"
-              className="border-green-200 hover:bg-green-50 hover:text-green-600 transition-colors"
+              className=" dark:border-secondary/10 border-green-200 hover:bg-green-50 hover:text-green-600 transition-colors"
             >
               <User className="h-4 w-4" />
             </Button>

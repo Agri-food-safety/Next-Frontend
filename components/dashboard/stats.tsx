@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 export function DashboardStats() {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card className="stat-card card-hover border-green-100 bg-white/80 backdrop-blur-sm">
+      <Card className="stat-card card-hover border-green-100 dark:border-secondary/10 bg-white/80 dark:bg-secondary/10 backdrop-blur-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600">
@@ -30,7 +30,7 @@ export function DashboardStats() {
           </div>
         </CardContent>
       </Card>
-      <Card className="stat-card stat-card-farmers card-hover border-green-100 bg-white/80 backdrop-blur-sm">
+      <Card className=" dark:bg-secondary/10 dark:border-secondary/10 stat-card stat-card-farmers card-hover border-green-100 bg-white/80 backdrop-blur-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Active Farmers</CardTitle>
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
@@ -56,7 +56,7 @@ export function DashboardStats() {
           </div>
         </CardContent>
       </Card>
-      <Card className="stat-card stat-card-alerts card-hover border-green-100 bg-white/80 backdrop-blur-sm">
+      <Card className="dark:bg-secondary/10 dark:border-secondary/10 stat-card stat-card-alerts card-hover border-green-100 bg-white/80 backdrop-blur-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Disease Alerts</CardTitle>
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-red-600">
@@ -73,7 +73,7 @@ export function DashboardStats() {
           </div>
         </CardContent>
       </Card>
-      <Card className="stat-card stat-card-regions card-hover border-green-100 bg-white/80 backdrop-blur-sm">
+      <Card className="dark:bg-secondary/10 dark:border-secondary/10 stat-card stat-card-regions card-hover border-green-100 bg-white/80 backdrop-blur-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Affected Regions</CardTitle>
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 text-purple-600">

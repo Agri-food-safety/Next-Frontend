@@ -1,0 +1,10 @@
+/* Dashboard card dark mode styles */
+.dark [data-dashboard="true"] .card {
+  background-color: hsl(var(--secondary) / 0.1) !important;
+}
+
+/* For nested shadcn UI components that might not have card class */
+.dark [data-dashboard="true"] [role="dialog"],
+.dark [data-dashboard="true"] [class*="card-"] {
+  background-color: transparent;
+}

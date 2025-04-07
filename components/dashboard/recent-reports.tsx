@@ -87,7 +87,7 @@ function getSeverityColor(severity: string) {
 
 export function RecentReports() {
   return (
-    <Card className="border-green-100 bg-white/80 backdrop-blur-sm">
+    <Card className="border-green-100 bg-white/80 backdrop-blur-sm dark:bg-secondary/10 dark:border-secondary/10">
       <CardHeader className="flex flex-row items-center">
         <div>
           <CardTitle className="text-lg font-semibold text-green-800">Recent Reports</CardTitle>
@@ -96,7 +96,7 @@ export function RecentReports() {
         <Button
           variant="outline"
           size="sm"
-          className="ml-auto border-green-200 hover:bg-green-50 hover:text-green-600 transition-colors"
+          className=" dark:border-secondary/10 ml-auto border-green-200 hover:bg-green-50 hover:text-green-600 transition-colors"
         >
           View All
         </Button>
@@ -106,7 +106,7 @@ export function RecentReports() {
           {reports.map((report) => (
             <div
               key={report.id}
-              className="flex items-center justify-between space-x-4 rounded-lg border border-green-100 p-4 transition-all hover:bg-green-50/50 hover:shadow-sm"
+              className="flex items-center justify-between space-x-4 rounded-lg border border-green-100  dark:border-secondary p-4 transition-all hover:bg-green-50/50 dark:hover:bg-secondary/10 hover:shadow-sm"
             >
               <div className="flex items-center space-x-4">
                 <Avatar>

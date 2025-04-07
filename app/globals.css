@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+
+@import '../styles/dark-mode.css';
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -64,7 +67,7 @@
     --primary: 142 76% 36%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 45 93% 47%;
+    --secondary: 220 13% 28%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --accent: 210 100% 52%;
@@ -244,6 +247,8 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--primary) / 0.7);
 }
+
+
 
 /* Subtle animations */
 @keyframes fadeIn {

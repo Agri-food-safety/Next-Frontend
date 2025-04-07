@@ -1,0 +1,24 @@
+/* Dark mode styles for dashboard */
+
+/* Target all cards within dashboard areas */
+[data-dashboard="true"] .card,
+.dashboard-content .card {
+  background-color: hsl(var(--secondary) / 0.1) !important;
+  border-color: hsl(215 28% 17%) !important;
+}
+
+/* Card header, content, footer in dark mode */
+.dark [data-dashboard="true"] .card-header,
+.dark [data-dashboard="true"] .card-content,
+.dark [data-dashboard="true"] .card-footer,
+.dark .dashboard-content .card-header,
+.dark .dashboard-content .card-content,
+.dark .dashboard-content .card-footer {
+  background-color: transparent !important;
+}
+
+/* More specific selector for shadcn UI cards */
+.dark [data-dashboard="true"] [role="dialog"],
+.dark .dashboard-content [role="dialog"] {
+  background-color: hsl(var(--secondary) / 0.1) !important;
+}

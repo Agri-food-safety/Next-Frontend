@@ -18,7 +18,7 @@ const data = [
 
 export function DiseaseDistribution() {
   return (
-    <Card className="border-green-100 bg-white/80 backdrop-blur-sm card-hover">
+    <Card className="border-green-100 bg-white/80 backdrop-blur-sm card-hover dark:bg-secondary/10 dark:border-secondary/10">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-green-800">Disease Distribution</CardTitle>
         <CardDescription>Breakdown of detected conditions by type</CardDescription>
