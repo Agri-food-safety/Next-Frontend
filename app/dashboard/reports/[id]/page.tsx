@@ -130,8 +130,8 @@ export default function ReportDetailPage() {
         
         <div className="grid gap-8 md:grid-cols-3">
           <div className="md:col-span-2 space-y-8">
-            <Card className="dark:bg-secondary/10  overflow-hidden border-none shadow-md bg-white/95 backdrop-blur-sm rounded-xl">
-              <CardHeader className="dark:bg-primary/10 border-b border-gray-100 bg-white/50 backdrop-blur-sm">
+            <Card className="dark:bg-secondary/10 overflow-hidden border-none shadow-md bg-white/95 backdrop-blur-sm rounded-xl">
+              <CardHeader className="dark:bg-primary/10 border-b border-gray-100 bg-primary/5  backdrop-blur-sm">
                 <div className="flex justify-between items-center">
                   <div>
                     <CardTitle className="dark:text-primary text-xl text-gray-800">Report #{ report_?.reportId.slice(0, 8)}</CardTitle>
@@ -165,9 +165,9 @@ export default function ReportDetailPage() {
                 
                 <div className="grid gap-8 md:grid-cols-2">
                   <div className="bg-primary/5 p-4 rounded-xl">
-                    <h3 className="flex items-center text-sm font-medium text-gray-700 mb-4">
+                    <h3 className="flex items-center text-sm font-medium text-gray-700 mb-4 dark:text-primary">
                       <div className="bg-primary/10 p-2 rounded-full mr-3">
-                        <Leaf className="h-4 w-4 text-primary" />
+                        <Leaf className="h-4 w-4 text-primary " />
                       </div>
                       Plant Details
                     </h3>
@@ -184,9 +184,9 @@ export default function ReportDetailPage() {
                   </div>
                   
                   <div className="bg-primary/5 p-4 rounded-xl">
-                    <h3 className="flex items-center text-sm font-medium text-gray-700 mb-4">
-                      <div className="bg-primary/10 p-2 rounded-full mr-3">
-                        <AlertCircle className="h-4 w-4 text-primary" />
+                    <h3 className="flex  dark:text-primary items-center text-sm font-medium text-gray-700 mb-4">
+                      <div className=" bg-primary/10 p-2 rounded-full mr-3">
+                        <AlertCircle className="h-4 w-4 text-primary dark:text-primary bg-primary/5" />
                       </div>
                       Detection Results
                     </h3>
@@ -205,11 +205,11 @@ export default function ReportDetailPage() {
                   </div>
                 </div>
                 
-                <div className="grid gap-8 md:grid-cols-2 mt-8">
-                  <div className="bg-gray-50/80 p-4 rounded-xl">
-                    <h3 className="flex items-center text-sm font-medium text-gray-700 mb-4">
-                      <div className="bg-gray-200 p-2 rounded-full mr-3">
-                        <User className="h-4 w-4 text-gray-700" />
+                <div className="bg-primary/5 grid gap-8 md:grid-cols-2 mt-8">
+                  <div className="p-4 rounded-xl">
+                    <h3 className="flex items-center text-sm font-medium text-gray-700 mb-4 dark:text-primary">
+                      <div className="bg-primary/10 p-2 rounded-full mr-3">
+                        <User className="h-4 w-4 text-gray-700 text-primary" />
                       </div>
                       Submitted By
                     </h3>
@@ -225,10 +225,10 @@ export default function ReportDetailPage() {
                     </div>
                   </div>
                   
-                  <div className="bg-gray-50/80 p-4 rounded-xl">
-                    <h3 className="flex items-center text-sm font-medium text-gray-700 mb-4">
-                      <div className="bg-gray-200 p-2 rounded-full mr-3">
-                        <Calendar className="h-4 w-4 text-gray-700" />
+                  <div className="dark:bg-secondary/5 bg-gray-50/80 p-4 rounded-xl">
+                    <h3 className="flex items-center text-sm font-medium text-gray-700 mb-4 dark:text-primary">
+                      <div className="bg-primary/10 p-2 rounded-full mr-3">
+                        <Calendar className="h-4 w-4 text-gray-700 text-primary" />
                       </div>
                       Timestamps
                     </h3>
@@ -248,8 +248,8 @@ export default function ReportDetailPage() {
                 </div>
                 
                 {report_?.reviewNotes && (
-                  <div className="mt-8 bg-muted/30 p-4 rounded-xl border border-muted">
-                    <h3 className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <div className="dark:bg-secondary/10 mt-8 bg-muted/30 p-4 rounded-xl border border-muted">
+                    <h3 className="flex items-center text-sm font-medium text-gray-700 mb-2 dark:text-primary">
                       <CheckCircle className="mr-2 h-4 w-4 text-success" />
                       Review Notes
                     </h3>
