@@ -1,7 +1,12 @@
+"use client";
+
 import { AlertTriangle, BarChart3, FileText, Users } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useReports } from "@/hooks/use-reports"
+import { useDashboardData } from "@/hooks/use-dashboard-data";
 
 export function DashboardStats() {
+  const { totalReports, reportsThisWeek } = useDashboardData();
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card className="stat-card card-hover border-green-100 dark:border-secondary/10 bg-white/80 dark:bg-secondary/10 backdrop-blur-sm">
@@ -12,7 +17,7 @@ export function DashboardStats() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">2,853</div>
+          <div className="text-2xl font-bold">{totalReports}</div>
           <div className="flex items-center mt-1">
             <div className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-600">
               <svg className="mr-1 h-3 w-3" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -64,7 +69,7 @@ export function DashboardStats() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">24</div>
+          <div className="text-2xl font-bold">{reportsThisWeek}</div>
           <div className="flex items-center mt-1">
             <div className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-600">
               <span className="font-bold mr-1">+</span>3

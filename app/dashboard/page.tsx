@@ -11,7 +11,6 @@ export const metadata: Metadata = {
 }
 
 export default function DashboardPage() {
-  console.log("HERER");
   return (
     <ProtectedRoute> {/* Wrap content with ProtectedRoute */}
       <div className="flex flex-col gap-6 p-6">
