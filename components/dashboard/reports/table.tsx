@@ -105,12 +105,12 @@ export function ReportsTable({
   // Function to get status badge variant
   function getStatusVariant(status: string) {
     switch (status.toLowerCase()) {
-      case 'approved': return 'success';
+      case 'approved': return 'secondary';
       case 'rejected': return 'destructive';
       case 'reviewing': return 'warning';
       case 'pending': return 'outline';
-      case 'submitted': return 'secondary'; // Add handling for 'submitted' status
-      default: return 'secondary';
+      case 'submitted': return 'success'; // Add handling for 'submitted' status
+      default: return 'success';
     }
   }
 
@@ -125,7 +125,7 @@ export function ReportsTable({
   }
 
   return (
-    <Card className="overflow-hidden border-green-100 dark:border-secondary/10">
+    <Card className="dark:bg-secondary/10 overflow-hidden border-green-100 dark:border-secondary/10">
       <CardContent className="p-0">
         {error ? (
           <div className="p-8 text-center">
@@ -141,10 +141,10 @@ export function ReportsTable({
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+              <div className="dark:bg-secondary/10 overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-secondary/10">
+                  <TableRow className="bg-primary/10">
                     <TableHead className="font-medium">Date</TableHead>
                     <TableHead className="font-medium">Plant</TableHead>
                     <TableHead className="font-medium">Condition</TableHead>
