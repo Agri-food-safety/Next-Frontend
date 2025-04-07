@@ -9,6 +9,7 @@ import { Eye } from "lucide-react"
 import { reportsAPI } from "@/lib/api"
 import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useReports } from "@/hooks/use-reports"
 
 // Helper function to get initials from name
 function getInitials(name: string): string {
@@ -58,59 +59,62 @@ function formatTimeAgo(dateString: string) {
 }
 
 interface Report {
-  id: string;
-  farmerId: string;
-  farmerName: string;
-  plantType: string;
-  condition: string;
-  severity: string;
+  reportId: string;
+  status: string;
+  gpsLat: number;
+  gpsLng: number;
   city: string;
   state: string;
+  imageUrl: string;
+  plant_detection: {
+    name: string;
+    plantId: string;
+    confidence: number;
+  };
+  disease_detection?: {
+    name: string;
+    diseaseId: string;
+    confidence: number;
+  };
+  pest_detection?: {
+    name: string;
+    pestId: string;
+    confidence: number;
+  };
+  drought_detection?: {
+    confidence: number;
+    description: string;
+    droughtLevel: number;
+  };
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  reviewNotes: string | null;
   timestamp: string;
-  status: string;
+  // For backward compatibility with our component
+  farmerId?: string; 
+  farmerName?: string;
 }
 
 export function RecentReports() {
-  const [reports, setReports] = useState<Report[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {reports: apiReports, isLoading, error} = useReports({page_size: 5});
+  
+  // Transform the API reports to match our component's needs
+  const reports = apiReports.map(report => ({
+    ...report,
+    id: report.reportId, // For any existing references to id
+    plantType: report.plant_detection.name || "Unknown plant",
+    condition: report.disease_detection?.name || report.pest_detection?.name || 
+               (report.drought_detection ? `Drought level ${report.drought_detection.droughtLevel}` : "Healthy"),
+    severity: report.disease_detection?.name ? "high" : 
+              report.pest_detection?.name ? "medium" : 
+              report.drought_detection ? "low" : "info"
+  }));
 
-  useEffect(() => {
-    const fetchRecentReports = async () => {
-      try {
-        setLoading(true);
-        const response = await reportsAPI.getReports({ page_size: 5 });
-
-        // Transform data to match our component's expected format
-        const formattedReports = response.data.data.results.map((report: any) => ({
-          id: report.id,
-          farmerId: report.farmer_id,
-          farmerName: report.farmer_name,
-          plantType: report.plant_type,
-          condition: report.condition,
-          severity: report.severity,
-          city: report.city,
-          state: report.state,
-          timestamp: report.timestamp,
-          status: report.status,
-        }));
-
-        setReports(formattedReports);
-        setError(null);
-      } catch (err: any) {
-        console.error("Failed to fetch recent reports:", err);
-        setError(err?.error?.message || "Failed to load recent reports");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRecentReports();
-  }, []);
+  console.log("Reports:", reports, apiReports);
 
   return (
     <Card className="border-green-100 bg-white/80 backdrop-blur-sm dark:bg-secondary/10 dark:border-secondary/10">
-      <CardHeader className="flex flex-row items-center">
+      <CardHeader className="flex flex-row justify-between items-center w-full">
         <div>
           <CardTitle className="text-lg font-semibold text-green-800 dark:text-green-400">Recent Reports</CardTitle>
           <CardDescription>Latest plant health reports submitted by farmers</CardDescription>
@@ -127,7 +131,7 @@ export function RecentReports() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {loading ? (
+          {isLoading ? (
             // Loading skeletons
             Array(5).fill(0).map((_, i) => (
               <div
@@ -157,15 +161,19 @@ export function RecentReports() {
           ) : (
             reports.map((report) => (
               <div
-                key={report.id}
+                key={report.reportId}
                 className="flex items-center justify-between space-x-4 rounded-lg border border-green-100 dark:border-secondary/10 p-4 transition-all hover:bg-green-50/50 dark:hover:bg-secondary/20 hover:shadow-sm"
               >
                 <div className="flex items-center space-x-4">
                   <Avatar>
-                    <AvatarFallback className="bg-green-100 text-green-700">{getInitials(report.farmerName)}</AvatarFallback>
+                    <AvatarFallback className="bg-green-100 text-green-700">
+                      {report.farmerName ? getInitials(report.farmerName) : "UN"}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-sm font-medium leading-none dark:text-gray-200">{report.farmerName}</p>
+                    <p className="text-sm font-medium leading-none dark:text-gray-200">
+                      {report.farmerName || "Unknown Farmer"}
+                    </p>
                     <p className="text-sm text-muted-foreground">{report.city}, {report.state}</p>
                   </div>
                 </div>
@@ -178,7 +186,7 @@ export function RecentReports() {
                     {report.severity}
                   </Badge>
                   <p className="hidden text-sm text-muted-foreground md:block">{formatTimeAgo(report.timestamp)}</p>
-                  <Link href={`/dashboard/reports/${report.id}`} passHref>
+                  <Link href={`/dashboard/reports/${report.reportId}`} passHref>
                     <Button variant="ghost" size="icon" className="hover:bg-green-100 dark:hover:bg-green-900/20 hover:text-green-600">
                       <Eye className="h-4 w-4" />
                     </Button>

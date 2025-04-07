@@ -94,7 +94,7 @@ export const authAPI = {
 };
 
 export const reportsAPI = {
-  getReports: (params?: any) => api.get('/reports', { params }),
+  getReports: (params?: any) => api.get('/reports/', {params}),
   getReportDetails: (reportId: string) => api.get(`/reports/${reportId}`),
   submitReport: (formData: FormData) =>
     api.post('/reports', formData, {

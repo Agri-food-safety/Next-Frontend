@@ -3,19 +3,45 @@
 import { useState, useEffect } from 'react';
 import { reportsAPI } from '@/lib/api';
 
+interface Detection {
+  name: string;
+  confidence: number;
+}
+
+interface PlantDetection extends Detection {
+  plantId: string;
+}
+
+interface DiseaseDetection extends Detection {
+  diseaseId: string;
+}
+
+interface PestDetection extends Detection {
+  pestId: string;
+}
+
+interface DroughtDetection {
+  confidence: number;
+  description: string;
+  droughtLevel: number;
+}
+
 interface Report {
-  id: string;
-  farmerId: string;
-  farmerName: string;
-  plantType: string;
-  condition: string;
-  severity: string;
-  location: string;
+  reportId: string;
+  status: string;
+  gpsLat: number;
+  gpsLng: number;
   city: string;
   state: string;
-  timestamp: string;
-  status: string;
   imageUrl?: string;
+  plant_detection: PlantDetection;
+  disease_detection: DiseaseDetection;
+  pest_detection: PestDetection;
+  drought_detection: DroughtDetection;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  reviewNotes: string;
+  timestamp: string;
 }
 
 interface ReportsResponse {
@@ -36,22 +62,10 @@ export function useReports(initialParams?: any): ReportsResponse {
     try {
       setIsLoading(true);
       const response = await reportsAPI.getReports(params);
-      
+      console.log("RESp:", response?.data)
       // Adapt the response data to our expected format
-      const formattedReports = response.data.data.results.map((report: any) => ({
-        id: report.id,
-        farmerId: report.farmer_id,
-        farmerName: report.farmer_name,
-        plantType: report.plant_type,
-        condition: report.condition,
-        severity: report.severity,
-        location: `${report.city}, ${report.state}`,
-        city: report.city,
-        state: report.state,
-        timestamp: report.timestamp,
-        status: report.status,
-        imageUrl: report.image_url
-      }));
+      const formattedReports = response?.data?.data?.reports;
+
 
       setReports(formattedReports);
       setTotalCount(response.data.data.count);
