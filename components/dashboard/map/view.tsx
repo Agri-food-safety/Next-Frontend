@@ -37,16 +37,24 @@ export function MapView() {
   const [selectedSeverity, setSelectedSeverity] = useState<string>("all")
   const [showFilters, setShowFilters] = useState(false)
   
-  // Fetch reports data
-  const { data: reports, isLoading } = useReports()
+  // Fetch reports data - fix the destructuring to match our hook
+  const { reports, isLoading } = useReports()
   
-  // Get unique regions from reports
-  const regions = Array.from(new Set(reports?.map(report => report.region) || []))
+  // Transform reports for mapping - extract state as region
+  const regions = Array.from(new Set(reports?.map(report => report.state) || []))
   
   // Filter reports based on selections
   const filteredReports = reports?.filter(report => {
-    const regionMatch = selectedRegion === "all" || report.region === selectedRegion
-    const severityMatch = selectedSeverity === "all" || report.severity === selectedSeverity
+    // Get severity from disease_detection, pest_detection, or drought_detection
+    let reportSeverity = "low";
+    if (report.disease_detection) {
+      reportSeverity = "high";
+    } else if (report.pest_detection) {
+      reportSeverity = "medium";
+    }
+    
+    const regionMatch = selectedRegion === "all" || report.state === selectedRegion
+    const severityMatch = selectedSeverity === "all" || reportSeverity === selectedSeverity
     return regionMatch && severityMatch
   }) || []
 
@@ -94,34 +102,52 @@ export function MapView() {
               />
               <ZoomControl position="bottomright" />
 
-              {filteredReports.map((report) => (
-                <CircleMarker
-                  key={report.id}
-                  center={[report.latitude, report.longitude]}
-                  radius={report.severity === "high" ? 12 : report.severity === "medium" ? 10 : 8}
-                  pathOptions={{
-                    fillColor: getSeverityColor(report.severity),
-                    color: getSeverityColor(report.severity),
-                    fillOpacity: 0.7,
-                    weight: 1,
-                  }}
-                >
-                  <Popup>
-                    <div className="p-1">
-                      <h3 className="font-medium">{report.condition}</h3>
-                      <p className="text-sm text-muted-foreground">Region: {report.region}</p>
-                      <p className="text-sm text-muted-foreground">Date: {new Date(report.date).toLocaleDateString()}</p>
-                      <p className="mt-1 flex items-center text-sm">
-                        <span
-                          className="mr-1 inline-block h-2 w-2 rounded-full"
-                          style={{ backgroundColor: getSeverityColor(report.severity) }}
-                        ></span>
-                        <span className="capitalize">{report.severity} Severity</span>
-                      </p>
-                    </div>
-                  </Popup>
-                </CircleMarker>
-              ))}
+              {filteredReports.map((report) => {
+                // Determine severity based on detections
+                let severity = "low";
+                let condition = "Healthy";
+                
+                if (report.disease_detection?.name) {
+                  severity = "high";
+                  condition = report.disease_detection.name;
+                } else if (report.pest_detection?.name) {
+                  severity = "medium";
+                  condition = report.pest_detection.name;
+                } else if (report.drought_detection) {
+                  severity = "low";
+                  condition = `Drought Level ${report.drought_detection.droughtLevel}`;
+                }
+                
+                return (
+                  <CircleMarker
+                    key={report.reportId}
+                    center={[report.gpsLat, report.gpsLng]}
+                    radius={severity === "high" ? 12 : severity === "medium" ? 10 : 8}
+                    pathOptions={{
+                      fillColor: getSeverityColor(severity),
+                      color: getSeverityColor(severity),
+                      fillOpacity: 0.7,
+                      weight: 1,
+                    }}
+                  >
+                    <Popup>
+                      <div className="p-1">
+                        <h3 className="font-medium">{report.plant_detection?.name || "Unknown Plant"}</h3>
+                        <p className="text-sm text-muted-foreground">{condition}</p>
+                        <p className="text-sm text-muted-foreground">Location: {report.city}, {report.state}</p>
+                        <p className="text-sm text-muted-foreground">Date: {new Date(report.timestamp).toLocaleDateString()}</p>
+                        <p className="mt-1 flex items-center text-sm">
+                          <span
+                            className="mr-1 inline-block h-2 w-2 rounded-full"
+                            style={{ backgroundColor: getSeverityColor(severity) }}
+                          ></span>
+                          <span className="capitalize">{severity} Severity</span>
+                        </p>
+                      </div>
+                    </Popup>
+                  </CircleMarker>
+                );
+              })}
             </MapContainer>
 
             {/* Full screen toggle button */}
@@ -148,7 +174,7 @@ export function MapView() {
             {showFilters && (
               <div className="absolute left-4 top-4 z-10 flex flex-col gap-4 rounded-md bg-white p-4 shadow-md">
                 <div className="space-y-2">
-                  <Label className="text-sm">Region</Label>
+                  <label className="text-sm">Region</label>
                   <Select value={selectedRegion} onValueChange={setSelectedRegion}>
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="All Regions" />
@@ -162,7 +188,7 @@ export function MapView() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm">Severity</Label>
+                  <label className="text-sm">Severity</label>
                   <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="All Severities" />
