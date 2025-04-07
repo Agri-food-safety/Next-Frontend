@@ -87,8 +87,8 @@ export default function DashboardLayout({
     { name: 'Reports', href: '/dashboard/reports', icon: FileText },
     { name: 'Map View', href: '/dashboard/map', icon: MapPin },
     { name: 'Alerts', href: '/dashboard/alerts', icon: Bell },
-    { name: 'Farmers', href: '/dashboard/farmers', icon: Users },
-    { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+    // { name: 'Farmers', href: '/dashboard/farmers', icon: Users },
+    // { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   ]
 
   return (
@@ -291,7 +291,20 @@ export default function DashboardLayout({
 
 
 export function UserChip() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
+  
+  if (loading) {
+    return (
+      <div className="mx-3 my-6">
+        <div className="rounded-xl bg-primary/5 dark:bg-primary/10 p-4 backdrop-blur-sm">
+          <div className="flex flex-col gap-2 animate-pulse">
+            <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="mx-3 my-6">
       <div className="rounded-xl bg-primary/5 dark:bg-primary/10 p-4 backdrop-blur-sm">

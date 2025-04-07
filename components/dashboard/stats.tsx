@@ -43,7 +43,7 @@ export function DashboardStats() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">573</div>
+          <div className="text-2xl font-bold">6</div>
           <div className="flex items-center mt-1">
             <div className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-600">
               <svg className="mr-1 h-3 w-3" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
