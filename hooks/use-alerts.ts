@@ -65,7 +65,7 @@ export function useAlerts(initialParams?: any): AlertsResponse {
       }));
 
       setAlerts(formattedAlerts);
-      setTotalCount(response.data.data.count || formattedAlerts.length);
+      setTotalCount(response?.data?.data?.count || formattedAlerts?.length);
       setError(null);
     } catch (err: any) {
       console.error('Failed to fetch alerts:', err);

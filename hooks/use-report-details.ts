@@ -1,5 +1,6 @@
 "use client"
 
+import { reportsAPI } from "@/lib/api";
 import { useState, useEffect } from "react"
 
 // Same dummy data used in the filters hook
@@ -88,14 +89,13 @@ export function useReportDetails(reportId: string | null) {
     }
 
     // Simulate API call with setTimeout
-    const timer = setTimeout(() => {
+    const fetchReports = async () => {
       try {
         setIsLoading(true)
         setError(null)
         
         // Find the report in our dummy data
-        const report = DUMMY_REPORTS.find(r => r.id === reportId)
-        
+        const report = await reportsAPI.getReportDetails(reportId);
         if (report) {
           setData(report)
         } else {
@@ -107,9 +107,9 @@ export function useReportDetails(reportId: string | null) {
       } finally {
         setIsLoading(false)
       }
-    }, 1000) // Simulate network delay
+    }; // Simulate network delay
     
-    return () => clearTimeout(timer)
+    fetchReports()
   }, [reportId])
 
   // Simulate updating a report

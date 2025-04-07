@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import dynamic from "next/dynamic"
 import Link from 'next/link'
-import { mockReports } from '@/lib/mock-data'
+import { Report } from "@/components/dashboard/recent-reports"
 
 // Dynamically load the map component to prevent SSR issues
 const ReportLocationMap = dynamic(() => import("@/components/dashboard/reports/location-map"), { 
@@ -49,10 +49,12 @@ export default function ReportDetailPage() {
 
   // Pre-fill review form if report is already reviewed
   useEffect(() => {
-    if (report && report.status === 'reviewed') {
-      setReviewStatus(report.status)
-      setReviewNotes(report.notes || '')
+    if (report && report_?.status === 'reviewed') {
+      setReviewStatus(report_?.status)
+      setReviewNotes(report_?.notes || '')
     }
+
+    console.log("REPORTSS", report);
   }, [report])
 
   const handleReviewSubmit = async () => {
@@ -84,10 +86,12 @@ export default function ReportDetailPage() {
     )
   }
 
+
+
   if (!report) {
     return (
       <div className="container py-12 px-4">
-        <Card className="max-w-md mx-auto overflow-hidden border-none shadow-lg bg-white/90 backdrop-blur-sm">
+        <Card className="max-w-md mx-auto overflow-hidden border-none shadow-lg bg-white/90 backdrop-blur-sm dark:bg-secondary/10">
           <CardContent className="p-8 flex flex-col items-center text-center">
             <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
               <AlertCircle className="h-8 w-8 text-red-500" />
@@ -105,11 +109,13 @@ export default function ReportDetailPage() {
       </div>
     )
   }
-
+  
+  console.log("Report Details:", report)
+  const report_ = report?.data?.data as Report;
   return (
     <ProtectedRoute>
       <div className="container py-8">
-        <div className="mb-8">
+        <div className="mb-8 ">
           <Button 
             asChild 
             variant="ghost" 
@@ -124,28 +130,28 @@ export default function ReportDetailPage() {
         
         <div className="grid gap-8 md:grid-cols-3">
           <div className="md:col-span-2 space-y-8">
-            <Card className="overflow-hidden border-none shadow-md bg-white/95 backdrop-blur-sm rounded-xl">
-              <CardHeader className="border-b border-gray-100 bg-white/50 backdrop-blur-sm">
+            <Card className="dark:bg-secondary/10  overflow-hidden border-none shadow-md bg-white/95 backdrop-blur-sm rounded-xl">
+              <CardHeader className="dark:bg-primary/10 border-b border-gray-100 bg-white/50 backdrop-blur-sm">
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle className="text-xl text-gray-800">Report #{report.id.slice(0, 8)}</CardTitle>
+                    <CardTitle className="dark:text-primary text-xl text-gray-800">Report #{ report_?.reportId.slice(0, 8)}</CardTitle>
                     <CardDescription className="text-muted-foreground">
-                      Submitted on {format(new Date(report.timestamp), "PPP 'at' p")}
+                      Submitted on {format(new Date(report_?.timestamp), "PPP 'at' p")}
                     </CardDescription>
                   </div>
                   <Badge 
-                    variant={report.status === 'reviewed' ? 'success' : 'warning'} 
+                    variant={report_?.status === 'reviewed' ? 'success' : 'warning'} 
                     className="capitalize px-3 py-1 text-xs font-medium rounded-full shadow-sm"
                   >
-                    {report.status}
+                    {report_?.status}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="relative aspect-video w-full overflow-hidden rounded-xl shadow-sm mb-8">
-                  {report.imageUrl ? (
+                  {report_?.imageUrl ? (
                     <Image
-                      src={report.imageUrl}
+                      src={report_?.imageUrl}
                       alt="Plant image"
                       fill
                       className="object-cover transition-all hover:scale-105 duration-500"
@@ -168,11 +174,11 @@ export default function ReportDetailPage() {
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Type:</span>
-                        <span className="font-medium">{report.plantType?.name || 'Unknown'}</span>
+                        <span className="font-medium">{report_?.plant_detection?.name || 'Unknown'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Scientific Name:</span>
-                        <span className="italic">{report.plantType?.scientificName || 'Unknown'}</span>
+                        <span className="italic">{report_?.plant_detection?.name || 'Unknown'}</span>
                       </div>
                     </div>
                   </div>
@@ -187,12 +193,12 @@ export default function ReportDetailPage() {
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Condition:</span>
-                        <span className="font-medium">{report.detectionResult}</span>
+                        <span className="font-medium">{report_?.disease_detection?.name}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Confidence:</span>
-                        <Badge variant={getSeverityStyle(report.confidenceScore)} className="rounded-full px-2">
-                          {Math.round(report.confidenceScore * 100)}%
+                        <Badge variant={getSeverityStyle(report_?.disease_detection?.confidence!)} className="rounded-full px-2">
+                          {Math.round(report_?.disease_detection?.confidence! * 100)}%
                         </Badge>
                       </div>
                     </div>
@@ -210,11 +216,11 @@ export default function ReportDetailPage() {
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Name:</span>
-                        <span className="font-medium">{report.user?.fullName || 'Unknown'}</span>
+                        <span className="font-medium">{report_?.farmerName || 'Unknown'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Phone:</span>
-                        <span>{report.user?.phone || 'Unknown'}</span>
+                        <span>{report_?.farmerName?.phone || '+213 553286504'}</span>
                       </div>
                     </div>
                   </div>
@@ -229,35 +235,35 @@ export default function ReportDetailPage() {
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Submitted:</span>
-                        <span>{format(new Date(report.timestamp), "PPP")}</span>
+                        <span>{format(new Date(report_?.timestamp), "PPP")}</span>
                       </div>
-                      {report.reviewedAt && (
+                      {report_?.reviewedAt && (
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Reviewed:</span>
-                          <span>{format(new Date(report.reviewedAt), "PPP")}</span>
+                          <span>{format(new Date(report_?.reviewedAt), "PPP")}</span>
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
                 
-                {report.notes && (
+                {report_?.reviewNotes && (
                   <div className="mt-8 bg-muted/30 p-4 rounded-xl border border-muted">
                     <h3 className="flex items-center text-sm font-medium text-gray-700 mb-2">
                       <CheckCircle className="mr-2 h-4 w-4 text-success" />
                       Review Notes
                     </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{report.notes}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{report_?.reviewNotes}</p>
                   </div>
                 )}
               </CardContent>
             </Card>
             
-            <Card className="overflow-hidden border-none shadow-md bg-white/95 backdrop-blur-sm rounded-xl">
-              <CardHeader className="border-b border-gray-100 bg-white/50 backdrop-blur-sm">
-                <CardTitle className="flex items-center text-xl text-gray-800">
+            <Card className="dark:bg-secondary/10 overflow-hidden border-none shadow-md bg-white/95 backdrop-blur-sm rounded-xl">
+              <CardHeader className="dark:bg-secondary/10  border-b border-gray-100 bg-white/50 backdrop-blur-sm">
+                <CardTitle className="flex items-center text-xl text-gray-800 dark:text-primary">
                   <div className="bg-primary/10 p-2 rounded-full mr-3">
-                    <MapPin className="h-4 w-4 text-primary" />
+                    <MapPin className="h-4 w-4 text-primary dark:text-primary" />
                   </div>
                   Location Information
                 </CardTitle>
@@ -267,36 +273,36 @@ export default function ReportDetailPage() {
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
                       <span className="block text-muted-foreground mb-1">City</span>
-                      <span className="font-medium">{report.city}</span>
+                      <span className="font-medium">{report_?.city}</span>
                     </div>
                     <div>
                       <span className="block text-muted-foreground mb-1">State</span>
-                      <span className="font-medium">{report.state}</span>
+                      <span className="font-medium">{report_?.state}</span>
                     </div>
                     <div>
                       <span className="block text-muted-foreground mb-1">Coordinates</span>
-                      <span className="font-medium">{report.gpsLat.toFixed(6)}, {report.gpsLng.toFixed(6)}</span>
+                      <span className="font-medium">{report_?.gpsLat.toFixed(6)}, {report_?.gpsLng.toFixed(6)}</span>
                     </div>
                   </div>
                 </div>
                 
                 <div className="h-[350px] w-full overflow-hidden rounded-xl border border-gray-100 shadow-sm">
-                  <ReportLocationMap lat={report.gpsLat} lng={report.gpsLng} />
+                  <ReportLocationMap lat={report_?.gpsLat} lng={report_?.gpsLng} />
                 </div>
               </CardContent>
             </Card>
           </div>
           
           <div>
-            <Card className="sticky top-6 overflow-hidden border-none shadow-md bg-white/95 backdrop-blur-sm rounded-xl">
+            <Card className="dark:bg-secondary/10 sticky top-6 overflow-hidden border-none shadow-md bg-white/95 backdrop-blur-sm rounded-xl">
               <CardHeader className="border-b border-gray-100 bg-primary/5">
-                <CardTitle className="text-lg text-gray-800">Review Report</CardTitle>
+                <CardTitle className="dark:text-primary text-lg text-gray-800">Review Report</CardTitle>
                 <CardDescription>Update status and add notes</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="status" className="text-gray-700">Status</Label>
+                    <Label htmlFor="status" className="text-gray-700 dark:text-white">Status</Label>
                     <Select 
                       value={reviewStatus} 
                       onValueChange={setReviewStatus}
@@ -312,10 +318,10 @@ export default function ReportDetailPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="notes" className="text-gray-700">Review Notes</Label>
+                    <Label htmlFor="notes" className="text-gray-700 dark:text-white">Review Notes</Label>
                     <Textarea
                       id="notes"
-                      placeholder="Add notes about this report..."
+                      placeholder="Add notes about this report_?..."
                       value={reviewNotes}
                       onChange={(e) => setReviewNotes(e.target.value)}
                       rows={5}

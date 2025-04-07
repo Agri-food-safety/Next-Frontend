@@ -1,22 +1,3 @@
-export interface Report {
-  id: string;
-  userId: string;
-  plantTypeId: string;
-  imageUrl: string;
-  timestamp: string;
-  gpsLat: number;
-  gpsLng: number;
-  city: string;
-  state: string;
-  detectionResult: string;
-  confidenceScore: number;
-  status: 'submitted' | 'reviewed';
-  notes: string;
-  reviewedBy?: string;
-  reviewedAt?: string;
-  farmerName: string;
-  plantType: string;
-}
 
 export const mockReports: Report[] = [
   {

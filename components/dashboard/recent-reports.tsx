@@ -58,7 +58,7 @@ function formatTimeAgo(dateString: string) {
   }
 }
 
-interface Report {
+export interface Report {
   reportId: string;
   status: string;
   gpsLat: number;
