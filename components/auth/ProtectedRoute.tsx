@@ -2,6 +2,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { Loader2 } from "lucide-react" // Add import for loading icon
 
 export default function ProtectedRoute({
   children,
@@ -15,7 +16,7 @@ export default function ProtectedRoute({
   const router = useRouter()
 
   useEffect(() => {
-    console.log("Auth", isAuthenticated, loading)
+    // Remove console log in production code
     if (!loading && !isAuthenticated) {
       router.push('/login')
     }
@@ -25,7 +26,12 @@ export default function ProtectedRoute({
   }, [isAuthenticated, loading, router, user?.role, requiredRole])
 
   if (loading || !isAuthenticated || (requiredRole && user?.role !== requiredRole)) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-green-600 mb-4" />
+        <p className="text-lg text-green-800 dark:text-green-400">Loading dashboard...</p>
+      </div>
+    )
   }
 
   return <>{children}</>
