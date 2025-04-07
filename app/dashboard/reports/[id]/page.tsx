@@ -11,7 +11,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { reportsAPI } from "@/lib/api"
 import { ArrowLeft, Loader2, MapPin, Calendar, User, Leaf, CheckCircle, AlertCircle } from "lucide-react"
 import { Label } from "@/components/ui/label"
@@ -23,8 +22,8 @@ import { mockReports } from '@/lib/mock-data'
 // Dynamically load the map component to prevent SSR issues
 const ReportLocationMap = dynamic(() => import("@/components/dashboard/reports/location-map"), { 
   ssr: false,
-  loading: () => <div className="h-[300px] w-full bg-muted flex items-center justify-center">
-    <Loader2 className="h-6 w-6 animate-spin" />
+  loading: () => <div className="h-[300px] w-full bg-muted/30 flex items-center justify-center rounded-xl">
+    <Loader2 className="h-6 w-6 animate-spin text-primary" />
   </div>
 })
 
@@ -74,151 +73,214 @@ export default function ReportDetailPage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="container h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading report details...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!report) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h1 className="text-2xl font-bold text-red-600">Report not found</h1>
-          <Link href="/dashboard/reports" className="text-indigo-600 hover:text-indigo-900 mt-4 inline-block">
-            ← Back to Reports
-          </Link>
-        </div>
+      <div className="container py-12 px-4">
+        <Card className="max-w-md mx-auto overflow-hidden border-none shadow-lg bg-white/90 backdrop-blur-sm">
+          <CardContent className="p-8 flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
+              <AlertCircle className="h-8 w-8 text-red-500" />
+            </div>
+            <h2 className="text-xl font-medium mb-2">Report Not Found</h2>
+            <p className="text-muted-foreground mb-6">The requested report could not be found or you may not have permission to view it.</p>
+            <Button asChild variant="outline" className="transition-all duration-300 hover:bg-primary/10">
+              <Link href="/dashboard/reports">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Reports
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
   return (
     <ProtectedRoute>
-      <div className="container py-6">
-        <div className="mb-6">
-          <Link href="/dashboard/reports" className="text-indigo-600 hover:text-indigo-900">
-            ← Back to Reports
-          </Link>
+      <div className="container py-8">
+        <div className="mb-8">
+          <Button 
+            asChild 
+            variant="ghost" 
+            className="group flex items-center transition-all duration-300 hover:bg-primary/10"
+          >
+            <Link href="/dashboard/reports">
+              <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+              <span>Back to Reports</span>
+            </Link>
+          </Button>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-3">
-          <div className="md:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
+        <div className="grid gap-8 md:grid-cols-3">
+          <div className="md:col-span-2 space-y-8">
+            <Card className="overflow-hidden border-none shadow-md bg-white/95 backdrop-blur-sm rounded-xl">
+              <CardHeader className="border-b border-gray-100 bg-white/50 backdrop-blur-sm">
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle>Report #{report.id.slice(0, 8)}</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-xl text-gray-800">Report #{report.id.slice(0, 8)}</CardTitle>
+                    <CardDescription className="text-muted-foreground">
                       Submitted on {format(new Date(report.timestamp), "PPP 'at' p")}
                     </CardDescription>
                   </div>
-                  <Badge variant={report.status === 'reviewed' ? 'success' : 'warning'}>
+                  <Badge 
+                    variant={report.status === 'reviewed' ? 'success' : 'warning'} 
+                    className="capitalize px-3 py-1 text-xs font-medium rounded-full shadow-sm"
+                  >
                     {report.status}
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="relative aspect-video w-full overflow-hidden rounded-lg">
+              <CardContent className="p-6">
+                <div className="relative aspect-video w-full overflow-hidden rounded-xl shadow-sm mb-8">
                   {report.imageUrl ? (
                     <Image
                       src={report.imageUrl}
                       alt="Plant image"
                       fill
-                      className="object-cover"
+                      className="object-cover transition-all hover:scale-105 duration-500"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-muted">
+                    <div className="flex h-full w-full items-center justify-center bg-muted/30">
                       <p className="text-muted-foreground">No image available</p>
                     </div>
                   )}
                 </div>
                 
-                <div className="mt-6 grid gap-4 md:grid-cols-2">
-                  <div>
-                    <h3 className="flex items-center text-sm font-medium text-muted-foreground">
-                      <Leaf className="mr-2 h-4 w-4" />
+                <div className="grid gap-8 md:grid-cols-2">
+                  <div className="bg-primary/5 p-4 rounded-xl">
+                    <h3 className="flex items-center text-sm font-medium text-gray-700 mb-4">
+                      <div className="bg-primary/10 p-2 rounded-full mr-3">
+                        <Leaf className="h-4 w-4 text-primary" />
+                      </div>
                       Plant Details
                     </h3>
-                    <div className="mt-2 space-y-2">
-                      <p><span className="font-medium">Type:</span> {report.plantType?.name || 'Unknown'}</p>
-                      <p><span className="font-medium">Scientific Name:</span> {report.plantType?.scientificName || 'Unknown'}</p>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Type:</span>
+                        <span className="font-medium">{report.plantType?.name || 'Unknown'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Scientific Name:</span>
+                        <span className="italic">{report.plantType?.scientificName || 'Unknown'}</span>
+                      </div>
                     </div>
                   </div>
                   
-                  <div>
-                    <h3 className="flex items-center text-sm font-medium text-muted-foreground">
-                      <AlertCircle className="mr-2 h-4 w-4" />
+                  <div className="bg-primary/5 p-4 rounded-xl">
+                    <h3 className="flex items-center text-sm font-medium text-gray-700 mb-4">
+                      <div className="bg-primary/10 p-2 rounded-full mr-3">
+                        <AlertCircle className="h-4 w-4 text-primary" />
+                      </div>
                       Detection Results
                     </h3>
-                    <div className="mt-2 space-y-2">
-                      <p><span className="font-medium">Condition:</span> {report.detectionResult}</p>
-                      <p>
-                        <span className="font-medium">Confidence:</span>{' '}
-                        <Badge variant={getSeverityStyle(report.confidenceScore)}>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Condition:</span>
+                        <span className="font-medium">{report.detectionResult}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Confidence:</span>
+                        <Badge variant={getSeverityStyle(report.confidenceScore)} className="rounded-full px-2">
                           {Math.round(report.confidenceScore * 100)}%
                         </Badge>
-                      </p>
+                      </div>
                     </div>
                   </div>
                 </div>
                 
-                <Separator className="my-6" />
-                
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <h3 className="flex items-center text-sm font-medium text-muted-foreground">
-                      <User className="mr-2 h-4 w-4" />
+                <div className="grid gap-8 md:grid-cols-2 mt-8">
+                  <div className="bg-gray-50/80 p-4 rounded-xl">
+                    <h3 className="flex items-center text-sm font-medium text-gray-700 mb-4">
+                      <div className="bg-gray-200 p-2 rounded-full mr-3">
+                        <User className="h-4 w-4 text-gray-700" />
+                      </div>
                       Submitted By
                     </h3>
-                    <div className="mt-2 space-y-2">
-                      <p><span className="font-medium">Name:</span> {report.user?.fullName || 'Unknown'}</p>
-                      <p><span className="font-medium">Phone:</span> {report.user?.phone || 'Unknown'}</p>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Name:</span>
+                        <span className="font-medium">{report.user?.fullName || 'Unknown'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Phone:</span>
+                        <span>{report.user?.phone || 'Unknown'}</span>
+                      </div>
                     </div>
                   </div>
                   
-                  <div>
-                    <h3 className="flex items-center text-sm font-medium text-muted-foreground">
-                      <Calendar className="mr-2 h-4 w-4" />
+                  <div className="bg-gray-50/80 p-4 rounded-xl">
+                    <h3 className="flex items-center text-sm font-medium text-gray-700 mb-4">
+                      <div className="bg-gray-200 p-2 rounded-full mr-3">
+                        <Calendar className="h-4 w-4 text-gray-700" />
+                      </div>
                       Timestamps
                     </h3>
-                    <div className="mt-2 space-y-2">
-                      <p><span className="font-medium">Submitted:</span> {format(new Date(report.timestamp), "PPP")}</p>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Submitted:</span>
+                        <span>{format(new Date(report.timestamp), "PPP")}</span>
+                      </div>
                       {report.reviewedAt && (
-                        <p><span className="font-medium">Reviewed:</span> {format(new Date(report.reviewedAt), "PPP")}</p>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Reviewed:</span>
+                          <span>{format(new Date(report.reviewedAt), "PPP")}</span>
+                        </div>
                       )}
                     </div>
                   </div>
                 </div>
                 
                 {report.notes && (
-                  <>
-                    <Separator className="my-6" />
-                    <div>
-                      <h3 className="flex items-center text-sm font-medium text-muted-foreground">
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Review Notes
-                      </h3>
-                      <div className="mt-2 rounded-md bg-muted p-3">
-                        <p>{report.notes}</p>
-                      </div>
-                    </div>
-                  </>
+                  <div className="mt-8 bg-muted/30 p-4 rounded-xl border border-muted">
+                    <h3 className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                      <CheckCircle className="mr-2 h-4 w-4 text-success" />
+                      Review Notes
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{report.notes}</p>
+                  </div>
                 )}
               </CardContent>
             </Card>
             
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <MapPin className="mr-2 h-5 w-5" />
+            <Card className="overflow-hidden border-none shadow-md bg-white/95 backdrop-blur-sm rounded-xl">
+              <CardHeader className="border-b border-gray-100 bg-white/50 backdrop-blur-sm">
+                <CardTitle className="flex items-center text-xl text-gray-800">
+                  <div className="bg-primary/10 p-2 rounded-full mr-3">
+                    <MapPin className="h-4 w-4 text-primary" />
+                  </div>
                   Location Information
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="mb-4 grid gap-4 md:grid-cols-2">
-                  <div>
-                    <p><span className="font-medium">City:</span> {report.city}</p>
-                    <p><span className="font-medium">State:</span> {report.state}</p>
-                    <p><span className="font-medium">Coordinates:</span> {report.gpsLat.toFixed(6)}, {report.gpsLng.toFixed(6)}</p>
+              <CardContent className="p-6">
+                <div className="bg-gray-50/80 p-4 rounded-xl mb-6">
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="block text-muted-foreground mb-1">City</span>
+                      <span className="font-medium">{report.city}</span>
+                    </div>
+                    <div>
+                      <span className="block text-muted-foreground mb-1">State</span>
+                      <span className="font-medium">{report.state}</span>
+                    </div>
+                    <div>
+                      <span className="block text-muted-foreground mb-1">Coordinates</span>
+                      <span className="font-medium">{report.gpsLat.toFixed(6)}, {report.gpsLng.toFixed(6)}</span>
+                    </div>
                   </div>
                 </div>
                 
-                <div className="h-[300px] w-full overflow-hidden rounded-md border">
+                <div className="h-[350px] w-full overflow-hidden rounded-xl border border-gray-100 shadow-sm">
                   <ReportLocationMap lat={report.gpsLat} lng={report.gpsLng} />
                 </div>
               </CardContent>
@@ -226,20 +288,20 @@ export default function ReportDetailPage() {
           </div>
           
           <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Review Report</CardTitle>
-                <CardDescription>Update the status and add notes to this report</CardDescription>
+            <Card className="sticky top-6 overflow-hidden border-none shadow-md bg-white/95 backdrop-blur-sm rounded-xl">
+              <CardHeader className="border-b border-gray-100 bg-primary/5">
+                <CardTitle className="text-lg text-gray-800">Review Report</CardTitle>
+                <CardDescription>Update status and add notes</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="p-6">
+                <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
+                    <Label htmlFor="status" className="text-gray-700">Status</Label>
                     <Select 
                       value={reviewStatus} 
                       onValueChange={setReviewStatus}
                     >
-                      <SelectTrigger id="status">
+                      <SelectTrigger id="status" className="rounded-lg border-gray-200 bg-white">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -250,25 +312,32 @@ export default function ReportDetailPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="notes">Review Notes</Label>
+                    <Label htmlFor="notes" className="text-gray-700">Review Notes</Label>
                     <Textarea
                       id="notes"
                       placeholder="Add notes about this report..."
                       value={reviewNotes}
                       onChange={(e) => setReviewNotes(e.target.value)}
                       rows={5}
+                      className="resize-none rounded-lg border-gray-200 bg-white"
                     />
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="p-6 pt-0">
                 <Button 
                   onClick={handleReviewSubmit} 
                   disabled={isSubmitting}
-                  className="w-full"
+                  className="w-full bg-primary hover:bg-primary/90 transition-all duration-300 rounded-lg"
                 >
-                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Review
+                  {isSubmitting ? (
+                    <div className="flex items-center">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </div>
+                  ) : (
+                    'Save Review'
+                  )}
                 </Button>
               </CardFooter>
             </Card>
