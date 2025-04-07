@@ -269,7 +269,7 @@ export default function ReportDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="bg-gray-50/80 p-4 rounded-xl mb-6">
+                <div className="dark:bg-secondary/10 bg-gray-50/80 p-4 rounded-xl mb-6">
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
                       <span className="block text-muted-foreground mb-1">City</span>
