@@ -18,9 +18,9 @@ export function DashboardSidebar() {
 
   return (
     <Sidebar variant="inset" collapsible="icon">
-      <SidebarHeader className="flex items-center px-4 py-4">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 text-white">
+      <SidebarHeader className="flex items-center px-6 py-4 bg-white">
+        <Link href="/dashboard" className="flex items-center gap-3">
+          <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 text-white">
             <Leaf className="h-5 w-5" />
           </div>
           <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
@@ -31,69 +31,50 @@ export function DashboardSidebar() {
           <SidebarTrigger />
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="p-4 bg-gray-50">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === "/dashboard"} tooltip="Dashboard" className="group">
-              <Link href="/dashboard">
-                <div className="flex items-center justify-center w-5 h-5 rounded-md group-hover:bg-green-100 group-hover:text-green-600 transition-colors duration-200">
-                  <Home className="h-4 w-4" />
-                </div>
-                <span>Dashboard</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === "/dashboard/map"} tooltip="Map View" className="group">
-              <Link href="/dashboard/map">
-                <div className="flex items-center justify-center w-5 h-5 rounded-md group-hover:bg-green-100 group-hover:text-green-600 transition-colors duration-200">
-                  <Map className="h-4 w-4" />
-                </div>
-                <span>Map View</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === "/dashboard/alerts"} tooltip="Alerts" className="group">
-              <Link href="/dashboard/alerts">
-                <div className="flex items-center justify-center w-5 h-5 rounded-md group-hover:bg-green-100 group-hover:text-green-600 transition-colors duration-200">
-                  <Bell className="h-4 w-4" />
-                </div>
-                <span>Alerts</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === "/dashboard/farmers"} tooltip="Farmers" className="group">
-              <Link href="/dashboard/farmers">
-                <div className="flex items-center justify-center w-5 h-5 rounded-md group-hover:bg-green-100 group-hover:text-green-600 transition-colors duration-200">
-                  <Users className="h-4 w-4" />
-                </div>
-                <span>Farmers</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === "/dashboard/reports"} tooltip="Reports" className="group">
-              <Link href="/dashboard/reports">
-                <div className="flex items-center justify-center w-5 h-5 rounded-md group-hover:bg-green-100 group-hover:text-green-600 transition-colors duration-200">
-                  <FileText className="h-4 w-4" />
-                </div>
-                <span>Reports</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {[
+            { href: "/dashboard", icon: Home, label: "Dashboard" },
+            { href: "/dashboard/map", icon: Map, label: "Map View" },
+            { href: "/dashboard/alerts", icon: Bell, label: "Alerts" },
+            { href: "/dashboard/farmers", icon: Users, label: "Farmers" },
+            { href: "/dashboard/reports", icon: FileText, label: "Reports" },
+          ].map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === item.href}
+                tooltip={item.label}
+                className="group flex items-center gap-4 px-6 py-4 rounded-xl transition-all duration-300 hover:bg-white hover:shadow-lg border border-gray-200"
+              >
+                <Link href={item.href} className="w-full">
+                  <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-white group-hover:bg-green-50 transition-colors duration-300">
+                    <item.icon className="h-5 w-5 text-green-600 group-hover:text-green-700" />
+                  </div>
+                  <span className="text-base font-medium text-gray-800 group-hover:text-green-700">
+                    {item.label}
+                  </span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="p-4 border-t border-gray-200">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Settings" className="group">
-              <Link href="/dashboard/settings">
-                <div className="flex items-center justify-center w-5 h-5 rounded-md group-hover:bg-green-100 group-hover:text-green-600 transition-colors duration-200">
-                  <Settings className="h-4 w-4" />
+            <SidebarMenuButton
+              asChild
+              tooltip="Settings"
+              className="group flex items-center gap-4 px-6 py-4 rounded-xl transition-all duration-300 hover:bg-white hover:shadow-lg border border-gray-200"
+            >
+              <Link href="/dashboard/settings" className="w-full">
+                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-white group-hover:bg-green-50 transition-colors duration-300">
+                  <Settings className="h-5 w-5 text-green-600 group-hover:text-green-700" />
                 </div>
-                <span>Settings</span>
+                <span className="text-base font-medium text-gray-800 group-hover:text-green-700">
+                  Settings
+                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -102,4 +83,3 @@ export function DashboardSidebar() {
     </Sidebar>
   )
 }
-
