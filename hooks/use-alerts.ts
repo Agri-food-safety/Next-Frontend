@@ -51,9 +51,11 @@ export function useAlerts(initialParams?: any): AlertsResponse {
     try {
       setIsLoading(true);
       const response = await alertsAPI.getAlerts(params);
+
+      console.log("API Response:", response);
       
       // Convert API response to our Alert interface format
-      const formattedAlerts = response.data.data.results.map((alert: any) => ({
+      const formattedAlerts = response?.data?.results.map((alert: Alert) => ({
         id: alert.id,
         title: alert.title,
         description: alert.description,
@@ -64,8 +66,11 @@ export function useAlerts(initialParams?: any): AlertsResponse {
         expiresAt: alert.expires_at || alert.expiresAt
       }));
 
+      
+
+      console.log("Formatted Alerts:", formattedAlerts);
       setAlerts(formattedAlerts);
-      setTotalCount(response?.data?.data?.count || formattedAlerts?.length);
+      setTotalCount(formattedAlerts?.length);
       setError(null);
     } catch (err: any) {
       console.error('Failed to fetch alerts:', err);
