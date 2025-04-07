@@ -33,6 +33,7 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   loading: boolean;
+  updateProfile: (profileData: Partial<User>) => Promise<void>; // Add update function type
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -80,6 +81,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
+  const updateProfile = async (profileData: Partial<User>) => {
+    try {
+      // Filter out non-updatable fields like phone, role, userId etc.
+      const updatableData = {
+        fullName: profileData.fullName,
+        city: profileData.city,
+        state: profileData.state,
+        gpsLat: profileData.gpsLat,
+        gpsLng: profileData.gpsLng,
+      };
+      // Ensure API call returns the updated profile data structure
+      const response = await authAPI.updateProfile(updatableData); 
+      // Assuming response structure matches ProfileResponse after update
+      const updatedUser = response.data as User; 
+      setUser(updatedUser); // Update user state with fresh data from API
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      throw error; // Re-throw to be handled by the component
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -87,7 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         isAuthenticated: !!user,
-        loading
+        loading,
+        updateProfile, // Provide the update function
       }}
     >
       {children}

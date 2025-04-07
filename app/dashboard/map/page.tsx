@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import { MapHeader } from "@/components/dashboard/map/header"
 import { MapFilters } from "@/components/dashboard/map/filters"
 import { MapView } from "@/components/dashboard/map/view"
@@ -13,11 +14,12 @@ export const metadata: Metadata = {
 
 export default function MapPage() {
   return (
-    <div className="flex h-full flex-col gap-6 p-6">
-      <MapHeader />
-      <MapFilters />
-      <MapView />
-    </div>
+    <ProtectedRoute>
+      <div className="flex h-full flex-col gap-6 p-6">
+        <MapHeader />
+        <MapFilters />
+        <MapView />
+      </div>
+    </ProtectedRoute>
   )
 }
-
