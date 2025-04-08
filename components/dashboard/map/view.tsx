@@ -40,6 +40,10 @@ export function MapView() {
   const [showFilters, setShowFilters] = useState(false)
   const [mapError, setMapError] = useState<string | null>(null)
   
+  // Algeria's center coordinates
+  const ALGERIA_CENTER = [28.0339, 1.6596]
+  const ALGERIA_ZOOM = 5
+  
   // Fetch reports data
   const { reports, isLoading } = useReports()
   
@@ -136,8 +140,8 @@ export function MapView() {
         {isClient && (
           <>
             <MapContainer
-              center={[7.5, -1.0]} // Center on Ghana
-              zoom={7}
+              center={ALGERIA_CENTER} // Center on Algeria instead of Ghana
+              zoom={ALGERIA_ZOOM} // Adjusted zoom level for Algeria
               style={{ height: "100%", width: "100%" }}
               zoomControl={false}
               whenCreated={(map) => {
