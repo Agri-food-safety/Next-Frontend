@@ -62,13 +62,12 @@ export function useReports(initialParams?: any): ReportsResponse {
     try {
       setIsLoading(true);
       const response = await reportsAPI.getReports(params);
-      console.log("RESp:", response?.data)
       // Adapt the response data to our expected format
       const formattedReports = response?.data?.data?.reports;
 
 
       setReports(formattedReports);
-      setTotalCount(response.data.data.count);
+      setTotalCount(response?.data?.data?.count);
       setError(null);
     } catch (err: any) {
       console.error('Failed to fetch reports:', err);

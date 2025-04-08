@@ -4,10 +4,12 @@ import type React from "react"
 import { useEffect, useRef, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Maximize2, Minimize2, Filter, X } from "lucide-react"
+import { Maximize2, Minimize2, Filter, X, Loader2 } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useReports } from "@/hooks/use-reports"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+// Add Leaflet CSS import
+import "leaflet/dist/leaflet.css"
 
 // Dynamically import Leaflet components with no SSR
 const MapContainer = dynamic(() => import("react-leaflet").then((mod) => mod.MapContainer), { ssr: false })
@@ -36,15 +38,18 @@ export function MapView() {
   const [selectedRegion, setSelectedRegion] = useState<string>("all")
   const [selectedSeverity, setSelectedSeverity] = useState<string>("all")
   const [showFilters, setShowFilters] = useState(false)
+  const [mapError, setMapError] = useState<string | null>(null)
   
-  // Fetch reports data - fix the destructuring to match our hook
+  // Fetch reports data
   const { reports, isLoading } = useReports()
   
   // Transform reports for mapping - extract state as region
-  const regions = Array.from(new Set(reports?.map(report => report.state) || []))
+  const regions = Array.from(new Set(reports?.map(report => report.state || 'Unknown') || []))
   
   // Filter reports based on selections
   const filteredReports = reports?.filter(report => {
+    if (!report || !report.gpsLat || !report.gpsLng) return false;
+    
     // Get severity from disease_detection, pest_detection, or drought_detection
     let reportSeverity = "low";
     if (report.disease_detection) {
@@ -60,7 +65,22 @@ export function MapView() {
 
   useEffect(() => {
     setIsClient(true)
-  }, [])
+    
+    // Ensure map container has proper dimensions
+    if (mapRef.current) {
+      const resizeMap = () => {
+        if (mapRef.current) {
+          const containerHeight = isFullScreen ? window.innerHeight : 500;
+          mapRef.current.style.height = `${containerHeight}px`;
+        }
+      };
+      
+      resizeMap();
+      window.addEventListener('resize', resizeMap);
+      
+      return () => window.removeEventListener('resize', resizeMap);
+    }
+  }, [isFullScreen]);
 
   const toggleFullScreen = () => setIsFullScreen(!isFullScreen)
   const toggleFilters = () => setShowFilters(!showFilters)
@@ -81,6 +101,31 @@ export function MapView() {
         width: "100%",
       }
 
+  // Show loading state while data is being fetched
+  if (!isClient) {
+    return (
+      <Card className="flex-1 overflow-hidden border-green-100 bg-white/80 backdrop-blur-sm">
+        <div className="flex h-[500px] w-full items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Card>
+    );
+  }
+
+  // Handle error state
+  if (mapError) {
+    return (
+      <Card className="flex-1 overflow-hidden border-green-100 bg-white/80 backdrop-blur-sm">
+        <div className="flex h-[500px] w-full flex-col items-center justify-center p-4 text-center">
+          <p className="text-red-500">Error loading map: {mapError}</p>
+          <Button className="mt-4" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card
       className={`overflow-hidden border-green-100 bg-white/80 backdrop-blur-sm ${
@@ -88,13 +133,18 @@ export function MapView() {
       }`}
     >
       <div ref={mapRef} className="relative w-full" style={mapContainerStyle as React.CSSProperties}>
-        {isClient ? (
+        {isClient && (
           <>
             <MapContainer
               center={[7.5, -1.0]} // Center on Ghana
               zoom={7}
               style={{ height: "100%", width: "100%" }}
               zoomControl={false}
+              whenCreated={(map) => {
+                setTimeout(() => {
+                  map.invalidateSize();
+                }, 100);
+              }}
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -102,7 +152,9 @@ export function MapView() {
               />
               <ZoomControl position="bottomright" />
 
-              {filteredReports.map((report) => {
+              {filteredReports.length > 0 && filteredReports.map((report) => {
+                if (!report.gpsLat || !report.gpsLng) return null;
+                
                 // Determine severity based on detections
                 let severity = "low";
                 let condition = "Healthy";
@@ -134,8 +186,8 @@ export function MapView() {
                       <div className="p-1">
                         <h3 className="font-medium">{report.plant_detection?.name || "Unknown Plant"}</h3>
                         <p className="text-sm text-muted-foreground">{condition}</p>
-                        <p className="text-sm text-muted-foreground">Location: {report.city}, {report.state}</p>
-                        <p className="text-sm text-muted-foreground">Date: {new Date(report.timestamp).toLocaleDateString()}</p>
+                        <p className="text-sm text-muted-foreground">Location: {report.city || 'Unknown'}, {report.state || 'Unknown'}</p>
+                        <p className="text-sm text-muted-foreground">Date: {report.timestamp ? new Date(report.timestamp).toLocaleDateString() : 'Unknown'}</p>
                         <p className="mt-1 flex items-center text-sm">
                           <span
                             className="mr-1 inline-block h-2 w-2 rounded-full"
@@ -220,12 +272,14 @@ export function MapView() {
               </div>
             </div>
           </>
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <p>Loading map...</p>
+        )}
+        
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/50">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         )}
       </div>
     </Card>
-  )
+  );
 }
