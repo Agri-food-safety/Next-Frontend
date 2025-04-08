@@ -236,7 +236,7 @@ export function MapView() {
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 50,
+        zIndex: 9999,
         width: "100vw",
         height: "100vh",
       }
@@ -273,7 +273,7 @@ export function MapView() {
   return (
     <Card
       className={`overflow-hidden border-green-100 bg-white/80 backdrop-blur-sm ${
-        isFullScreen ? "fixed inset-0 z-100 m-0 rounded-none border-0" : "flex-1"
+        isFullScreen ? "fixed inset-0 z-[9999] m-0 rounded-none border-0" : "flex-1"
       }`}
     >
       <div ref={mapRef} className="relative w-full" style={mapContainerStyle as React.CSSProperties}>
