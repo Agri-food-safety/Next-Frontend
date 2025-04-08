@@ -110,7 +110,6 @@ export default function ReportDetailPage() {
     )
   }
   
-  console.log("Report Details:", report)
   const report_ = report?.data?.data as Report;
   return (
     <ProtectedRoute>

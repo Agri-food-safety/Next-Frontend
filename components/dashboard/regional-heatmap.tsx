@@ -3,43 +3,41 @@
 import dynamic from "next/dynamic"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-// Dynamically import the chart components with SSR disabled
-const ChartContainer = dynamic(() => import("@/components/ui/chart").then((mod) => mod.ChartContainer), { ssr: false })
-const ChartBar = dynamic(() => import("@/components/ui/chart").then((mod) => mod.ChartBar), { ssr: false })
-const ChartGrid = dynamic(() => import("@/components/ui/chart").then((mod) => mod.ChartGrid), { ssr: false })
-const ChartXAxis = dynamic(() => import("@/components/ui/chart").then((mod) => mod.ChartXAxis), { ssr: false })
-const ChartYAxis = dynamic(() => import("@/components/ui/chart").then((mod) => mod.ChartYAxis), { ssr: false })
+// Dynamically import the chart component with SSR disabled
+const BarChart3 = dynamic(
+  () => import("@/components/ui/chart").then((mod) => mod.BarChart3),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="h-[300px] w-full bg-muted/20 animate-pulse rounded-md"></div>
+    )
+  }
+)
 
 const data = [
   {
-    name: "Northern",
+    name: "Algiers (North)",
     disease: 45,
     drought: 30,
     pest: 15,
   },
   {
-    name: "Eastern",
+    name: "Oran (West)",
     disease: 25,
     drought: 50,
     pest: 10,
   },
   {
-    name: "Western",
+    name: "Bejaya (East)",
     disease: 35,
     drought: 20,
     pest: 25,
   },
   {
-    name: "Southern",
+    name: "Ghardaia (South)",
     disease: 30,
     drought: 35,
     pest: 20,
-  },
-  {
-    name: "Central",
-    disease: 40,
-    drought: 25,
-    pest: 15,
   },
 ]
 
@@ -51,16 +49,16 @@ export function RegionalHeatmap() {
         <CardDescription>Reports by region and condition type</CardDescription>
       </CardHeader>
       <CardContent>
-        {typeof window !== "undefined" && (
-          <ChartContainer height={300}>
-            <ChartGrid vertical={false} />
-            <ChartBar dataKey="disease" fill="#10b981" radius={4} data={data} name="Disease" stackId="a" />
-            <ChartBar dataKey="drought" fill="#f59e0b" radius={4} data={data} name="Drought" stackId="a" />
-            <ChartBar dataKey="pest" fill="#6366f1" radius={4} data={data} name="Pest" stackId="a" />
-            <ChartXAxis dataKey="name" />
-            <ChartYAxis />
-          </ChartContainer>
-        )}
+        <BarChart3 
+          data={data}
+          series={[
+            { dataKey: "disease", name: "Disease", color: "#10b981", stackId: "a" },
+            { dataKey: "drought", name: "Drought", color: "#f59e0b", stackId: "a" },
+            { dataKey: "pest", name: "Pest", color: "#6366f1", stackId: "a" },
+          ]}
+          index="name"
+          height={300}
+        />
       </CardContent>
     </Card>
   )

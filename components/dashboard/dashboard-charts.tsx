@@ -1,17 +1,10 @@
 "use client"
 
 import dynamic from "next/dynamic"
+import { DiseaseDistribution } from "./disease-distribution"
+import { RegionalHeatmap } from "./regional-heatmap"
 
 // Dynamically import chart components with SSR disabled
-const DiseaseDistribution = dynamic(
-  () => import("@/components/dashboard/disease-distribution").then((mod) => mod.DiseaseDistribution),
-  { ssr: false },
-)
-
-const RegionalHeatmap = dynamic(
-  () => import("@/components/dashboard/regional-heatmap").then((mod) => mod.RegionalHeatmap),
-  { ssr: false },
-)
 
 export function DashboardCharts() {
   return (
