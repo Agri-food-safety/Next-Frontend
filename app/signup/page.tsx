@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
 import { Loader2, UserPlus, Phone, Lock, MapPin, User } from 'lucide-react'
+import { algeriaWilayas } from '@/data/algeria-locations'
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -26,6 +27,8 @@ export default function SignupPage() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [selectedWilaya, setSelectedWilaya] = useState('')
+  const [availableCounties, setAvailableCounties] = useState<{ id: string; name: string }[]>([])
   const { isAuthenticated } = useAuth()
   const router = useRouter()
 
@@ -52,6 +55,21 @@ export default function SignupPage() {
     }
   }, [])
 
+  useEffect(() => {
+    // Update available counties when wilaya selection changes
+    if (selectedWilaya) {
+      const wilaya = algeriaWilayas.find(w => w.id === selectedWilaya)
+      if (wilaya) {
+        setAvailableCounties(wilaya.counties)
+        setFormData(prev => ({ ...prev, state: wilaya.name, city: '' }))
+      } else {
+        setAvailableCounties([])
+      }
+    } else {
+      setAvailableCounties([])
+    }
+  }, [selectedWilaya])
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
@@ -59,6 +77,17 @@ export default function SignupPage() {
 
   const handleRoleChange = (value: string) => {
      setFormData((prev) => ({ ...prev, role: value }))
+  }
+
+  const handleWilayaChange = (wilayaId: string) => {
+    setSelectedWilaya(wilayaId)
+  }
+
+  const handleCountyChange = (countyId: string) => {
+    const county = availableCounties.find(c => c.id === countyId)
+    if (county) {
+      setFormData(prev => ({ ...prev, city: county.name }))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -228,40 +257,40 @@ export default function SignupPage() {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city" className="text-gray-700 dark:text-gray-300">City</Label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                          <MapPin className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <Input
-                          id="city"
-                          name="city"
-                          value={formData.city}
-                          onChange={handleChange}
-                          className="pl-10 bg-gray-50 dark:bg-gray-800"
-                          required
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="state" className="text-gray-700 dark:text-gray-300">State</Label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                          <MapPin className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <Input
-                          id="state"
-                          name="state"
-                          value={formData.state}
-                          onChange={handleChange}
-                          className="pl-10 bg-gray-50 dark:bg-gray-800"
-                          required
-                        />
-                      </div>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="wilaya" className="text-gray-700 dark:text-gray-300">Wilaya</Label>
+                    <Select value={selectedWilaya} onValueChange={handleWilayaChange}>
+                      <SelectTrigger id="wilaya" className="bg-gray-50 dark:bg-gray-800">
+                        <SelectValue placeholder="Select wilaya" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {algeriaWilayas.map(wilaya => (
+                          <SelectItem key={wilaya.id} value={wilaya.id}>
+                            {wilaya.name} ({wilaya.code})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="county" className="text-gray-700 dark:text-gray-300">County</Label>
+                    <Select 
+                      value={formData.city ? availableCounties.find(c => c.name === formData.city)?.id : ''}
+                      onValueChange={handleCountyChange}
+                      disabled={!selectedWilaya || availableCounties.length === 0}
+                    >
+                      <SelectTrigger id="county" className="bg-gray-50 dark:bg-gray-800">
+                        <SelectValue placeholder={!selectedWilaya ? "Select wilaya first" : "Select county"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableCounties.map(county => (
+                          <SelectItem key={county.id} value={county.id}>
+                            {county.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div className="space-y-2">
