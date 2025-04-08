@@ -134,7 +134,21 @@ export function MapView() {
     const regionMatch = selectedRegion === "all" || report.state === selectedRegion;
     const severityMatch = selectedSeverity === "all" || reportSeverity === selectedSeverity;
     const plantTypeMatch = selectedPlantType === "all" || report.plant_detection?.name === selectedPlantType;
-    const detectionTypeMatch = selectedDetectionType === "all" || detectionType === selectedDetectionType;
+    
+    // Improved detection type filtering
+    let detectionTypeMatch = true;
+    if (selectedDetectionType !== "all") {
+      if (selectedDetectionType === "disease") {
+        detectionTypeMatch = !!report.disease_detection;
+      } else if (selectedDetectionType === "pest") {
+        detectionTypeMatch = !!report.pest_detection;
+      } else if (selectedDetectionType === "drought") {
+        detectionTypeMatch = !!report.drought_detection;
+      } else if (selectedDetectionType === "normal") {
+        // For "normal", show reports with no detections
+        detectionTypeMatch = !report.disease_detection && !report.pest_detection && !report.drought_detection;
+      }
+    }
     
     // Date range filtering
     let dateMatch = true;
@@ -176,6 +190,23 @@ export function MapView() {
     // All conditions must match
     return regionMatch && severityMatch && plantTypeMatch && detectionTypeMatch && dateMatch && presetMatch;
   }) || [];
+
+  // Get unique detection types present in filtered reports for the legend
+  const detectionTypesInFiltered = new Set<string>();
+  filteredReports.forEach(report => {
+    if (report.disease_detection) {
+      detectionTypesInFiltered.add('disease');
+    } else if (report.pest_detection) {
+      detectionTypesInFiltered.add('pest');
+    } else if (report.drought_detection) {
+      detectionTypesInFiltered.add('drought');
+    } else {
+      detectionTypesInFiltered.add('normal');
+    }
+  });
+
+  // Always include all detection types in legend for consistency
+  const detectionTypesForLegend = ['disease', 'pest', 'drought', 'normal'];
 
   // Reset all filters
   const resetFilters = () => {
@@ -341,35 +372,33 @@ export function MapView() {
               </div>
             </div>
 
-            {/* Move legend to top right */}
+            {/* Updated legend with dynamic highlighting based on filtered data */}
             <div className="absolute bottom-4 right-16 flex flex-col gap-2 z-[1000]">
-              {(
-                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md text-black">
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.disease }}></div>
-                  <span className="text-xs">Disease</span>
+              {detectionTypesForLegend.map(type => (
+                <div 
+                  key={type}
+                  className={`flex items-center gap-2 rounded-md ${
+                    detectionTypesInFiltered.has(type) || detectionTypesInFiltered.size === 0 
+                      ? 'bg-white' 
+                      : 'bg-white/50'
+                  } p-2 shadow-md text-black`}
+                >
+                  <div 
+                    className="h-3 w-3 rounded-full" 
+                    style={{ 
+                      backgroundColor: DETECTION_COLORS[type as keyof typeof DETECTION_COLORS],
+                      opacity: detectionTypesInFiltered.has(type) || detectionTypesInFiltered.size === 0 ? 1 : 0.5
+                    }}
+                  ></div>
+                  <span className={`text-xs ${
+                    detectionTypesInFiltered.has(type) || detectionTypesInFiltered.size === 0 
+                      ? 'font-medium' 
+                      : 'text-gray-500'
+                  }`}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </span>
                 </div>
-              )}
-              
-              {(
-                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md text-black">
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.pest }}></div>
-                  <span className="text-xs">Pest</span>
-                </div>
-              )}
-              
-              {(
-                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md text-black">
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.drought }}></div>
-                  <span className="text-xs">Drought</span>
-                </div>
-              )}
-              
-              { (
-                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md text-black">
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.normal }}></div>
-                  <span className="text-xs">Normal/Healthy</span>
-                </div>
-              )}
+              ))}
             </div>
 
             <MapContainer
@@ -392,7 +421,7 @@ export function MapView() {
               {filteredReports.length > 0 && filteredReports.map((report) => {
                 if (!report.gpsLat || !report.gpsLng) return null;
                 
-                // Determine detection type and condition
+                // Improved detection type determination
                 let detectionType = "normal";
                 let condition = "Healthy";
                 let severity = "low";
@@ -407,10 +436,11 @@ export function MapView() {
                   severity = "medium";
                 } else if (report.drought_detection) {
                   detectionType = "drought";
-                  condition = `Drought Level ${report.drought_detection.droughtLevel}`;
+                  condition = `Drought Level ${report.drought_detection.droughtLevel || 'Unknown'}`;
                   severity = "low";
                 }
                 
+                // Get color using consistent mapping
                 const markerColor = getDetectionColor(detectionType);
                 
                 return (
@@ -530,10 +560,10 @@ export function MapView() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem className="text-black" value="all">All Detection Types</SelectItem>
-                      <SelectItem className="text-black"  value="disease">Disease</SelectItem>
-                      <SelectItem className="text-black"  value="pest">Pest</SelectItem>
-                      <SelectItem className="text-black"  value="drought">Drought</SelectItem>
-                      <SelectItem className="text-black"  value="none">None</SelectItem>
+                      <SelectItem className="text-black" value="disease">Disease</SelectItem>
+                      <SelectItem className="text-black" value="pest">Pest</SelectItem>
+                      <SelectItem className="text-black" value="drought">Drought</SelectItem>
+                      <SelectItem className="text-black" value="normal">Normal/Healthy</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
