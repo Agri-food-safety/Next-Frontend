@@ -4,10 +4,11 @@ import type React from "react"
 import { useEffect, useRef, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Maximize2, Minimize2, Filter, X, Loader2 } from "lucide-react"
+import { Maximize2, Minimize2, Filter, X, Loader2, RefreshCw } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useReports } from "@/hooks/use-reports"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
 // Add Leaflet CSS import
 import "leaflet/dist/leaflet.css"
 
@@ -26,9 +27,49 @@ const SEVERITY_COLORS = {
   default: "#6366f1" // indigo-500
 }
 
+// Update the color mapping to focus on detection types
+const DETECTION_COLORS = {
+  disease: "#ef4444", // red for disease
+  pest: "#f59e0b",    // amber for pests
+  drought: "#f59e0b", // amber for drought
+  normal: "#10b981",  // green for normal/healthy
+  default: "#6366f1"  // indigo for default
+}
+
+// Report type definition for better type safety
+type Report = {
+  reportId: string;
+  gpsLat: number;
+  gpsLng: number;
+  city?: string;
+  state?: string;
+  timestamp?: string;
+  plant_detection?: {
+    plant_id: string;
+    name?: string;
+  };
+  disease_detection?: {
+    disease_id: string;
+    name?: string;
+  };
+  pest_detection?: {
+    pest_id: string;
+    name?: string;
+  };
+  drought_detection?: {
+    draught_id: number;
+    droughtLevel?: number;
+  };
+};
+
 // Get color based on severity
 function getSeverityColor(severity: string) {
   return SEVERITY_COLORS[severity.toLowerCase() as keyof typeof SEVERITY_COLORS] || SEVERITY_COLORS.default
+}
+
+// Get color based on detection type
+function getDetectionColor(detectionType: string) {
+  return DETECTION_COLORS[detectionType as keyof typeof DETECTION_COLORS] || DETECTION_COLORS.default
 }
 
 export function MapView() {
@@ -37,6 +78,9 @@ export function MapView() {
   const [isClient, setIsClient] = useState(false)
   const [selectedRegion, setSelectedRegion] = useState<string>("all")
   const [selectedSeverity, setSelectedSeverity] = useState<string>("all")
+  const [selectedPlantType, setSelectedPlantType] = useState<string>("all")
+  const [selectedDetectionType, setSelectedDetectionType] = useState<string>("all")
+  const [selectedDateRange, setSelectedDateRange] = useState<string>("all") // "all", "today", "week", "month"
   const [showFilters, setShowFilters] = useState(false)
   const [mapError, setMapError] = useState<string | null>(null)
   
@@ -47,25 +91,75 @@ export function MapView() {
   // Fetch reports data
   const { reports, isLoading } = useReports()
   
-  // Transform reports for mapping - extract state as region
-  const regions = Array.from(new Set(reports?.map(report => report.state || 'Unknown') || []))
+  // Extract unique values for filter options
+  const regions = Array.from(new Set(reports?.map(report => report.state || 'Unknown').filter(Boolean))) || []
+  const plantTypes = Array.from(new Set(reports?.map(report => report.plant_detection?.name || 'Unknown').filter(Boolean))) || []
+
+  // Count active filters
+  const activeFilters = [
+    selectedRegion !== "all",
+    selectedSeverity !== "all",
+    selectedPlantType !== "all",
+    selectedDetectionType !== "all",
+    selectedDateRange !== "all"
+  ].filter(Boolean).length
   
   // Filter reports based on selections
   const filteredReports = reports?.filter(report => {
     if (!report || !report.gpsLat || !report.gpsLng) return false;
     
-    // Get severity from disease_detection, pest_detection, or drought_detection
+    // Get severity and detection type from report properties
     let reportSeverity = "low";
+    let detectionType = "normal"; // Default to normal/healthy
+    
     if (report.disease_detection) {
       reportSeverity = "high";
+      detectionType = "disease";
     } else if (report.pest_detection) {
       reportSeverity = "medium";
+      detectionType = "pest";
+    } else if (report.drought_detection) {
+      reportSeverity = "low";
+      detectionType = "drought";
     }
     
-    const regionMatch = selectedRegion === "all" || report.state === selectedRegion
-    const severityMatch = selectedSeverity === "all" || reportSeverity === selectedSeverity
-    return regionMatch && severityMatch
-  }) || []
+    // Apply each filter
+    const regionMatch = selectedRegion === "all" || report.state === selectedRegion;
+    const severityMatch = selectedSeverity === "all" || reportSeverity === selectedSeverity;
+    const plantTypeMatch = selectedPlantType === "all" || report.plant_detection?.name === selectedPlantType;
+    const detectionTypeMatch = selectedDetectionType === "all" || detectionType === selectedDetectionType;
+    
+    // Date range filtering
+    let dateMatch = true;
+    if (selectedDateRange !== "all" && report.timestamp) {
+      const reportDate = new Date(report.timestamp);
+      const today = new Date();
+      const now = today.getTime();
+      
+      if (selectedDateRange === "today") {
+        const startOfDay = new Date(today.setHours(0, 0, 0, 0)).getTime();
+        dateMatch = reportDate.getTime() >= startOfDay && reportDate.getTime() <= now;
+      } else if (selectedDateRange === "week") {
+        const oneWeekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000).getTime();
+        dateMatch = reportDate.getTime() >= oneWeekAgo && reportDate.getTime() <= now;
+      } else if (selectedDateRange === "month") {
+        const oneMonthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000).getTime();
+        dateMatch = reportDate.getTime() >= oneMonthAgo && reportDate.getTime() <= now;
+      }
+    }
+    
+    // All conditions must match
+    return regionMatch && severityMatch && plantTypeMatch && detectionTypeMatch && dateMatch;
+  }) || [];
+
+  // Reset all filters
+  const resetFilters = () => {
+    setSelectedRegion("all");
+    setSelectedSeverity("all");
+    setSelectedPlantType("all");
+    setSelectedDetectionType("all");
+    setSelectedDateRange("all");
+  };
 
   useEffect(() => {
     setIsClient(true)
@@ -140,8 +234,8 @@ export function MapView() {
         {isClient && (
           <>
             <MapContainer
-              center={ALGERIA_CENTER} // Center on Algeria instead of Ghana
-              zoom={ALGERIA_ZOOM} // Adjusted zoom level for Algeria
+              center={ALGERIA_CENTER}
+              zoom={ALGERIA_ZOOM}
               style={{ height: "100%", width: "100%" }}
               zoomControl={false}
               whenCreated={(map) => {
@@ -159,20 +253,26 @@ export function MapView() {
               {filteredReports.length > 0 && filteredReports.map((report) => {
                 if (!report.gpsLat || !report.gpsLng) return null;
                 
-                // Determine severity based on detections
-                let severity = "low";
+                // Determine detection type and condition
+                let detectionType = "normal";
                 let condition = "Healthy";
+                let severity = "low";
                 
                 if (report.disease_detection?.name) {
-                  severity = "high";
+                  detectionType = "disease";
                   condition = report.disease_detection.name;
+                  severity = "high";
                 } else if (report.pest_detection?.name) {
-                  severity = "medium";
+                  detectionType = "pest";
                   condition = report.pest_detection.name;
+                  severity = "medium";
                 } else if (report.drought_detection) {
-                  severity = "low";
+                  detectionType = "drought";
                   condition = `Drought Level ${report.drought_detection.droughtLevel}`;
+                  severity = "low";
                 }
+                
+                const markerColor = getDetectionColor(detectionType);
                 
                 return (
                   <CircleMarker
@@ -180,8 +280,8 @@ export function MapView() {
                     center={[report.gpsLat, report.gpsLng]}
                     radius={severity === "high" ? 12 : severity === "medium" ? 10 : 8}
                     pathOptions={{
-                      fillColor: getSeverityColor(severity),
-                      color: getSeverityColor(severity),
+                      fillColor: markerColor,
+                      color: markerColor,
                       fillOpacity: 0.7,
                       weight: 1,
                     }}
@@ -195,9 +295,9 @@ export function MapView() {
                         <p className="mt-1 flex items-center text-sm">
                           <span
                             className="mr-1 inline-block h-2 w-2 rounded-full"
-                            style={{ backgroundColor: getSeverityColor(severity) }}
+                            style={{ backgroundColor: markerColor }}
                           ></span>
-                          <span className="capitalize">{severity} Severity</span>
+                          <span className="capitalize">{detectionType} Detection</span>
                         </p>
                       </div>
                     </Popup>
@@ -205,6 +305,15 @@ export function MapView() {
                 );
               })}
             </MapContainer>
+
+            {/* Filter indicator */}
+            {activeFilters > 0 && (
+              <div className="absolute left-4 bottom-4 z-10">
+                <Badge className="bg-green-600 hover:bg-green-700">
+                  {activeFilters} {activeFilters === 1 ? 'filter' : 'filters'} active
+                </Badge>
+              </div>
+            )}
 
             {/* Full screen toggle button */}
             <Button
@@ -220,19 +329,32 @@ export function MapView() {
             <Button
               variant="secondary"
               size="icon"
-              className="absolute right-4 top-16 z-10 bg-white shadow-md hover:bg-green-50"
+              className={`absolute right-4 top-16 z-10 bg-white shadow-md hover:bg-green-50 ${
+                activeFilters > 0 ? 'ring-2 ring-green-600' : ''
+              }`}
               onClick={toggleFilters}
             >
               {showFilters ? <X className="h-4 w-4" /> : <Filter className="h-4 w-4" />}
             </Button>
 
-            {/* Filters panel */}
+            {/* Enhanced filters panel */}
             {showFilters && (
-              <div className="absolute left-4 top-4 z-10 flex flex-col gap-4 rounded-md bg-white p-4 shadow-md">
+              <div className="absolute left-4 top-4 z-10 flex max-h-[80vh] flex-col gap-4 overflow-y-auto rounded-md bg-white p-4 shadow-md">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium">Filters</h3>
+                  {activeFilters > 0 && (
+                    <Button variant="ghost" size="sm" onClick={resetFilters} className="h-8 text-xs">
+                      <RefreshCw className="mr-1 h-3 w-3" />
+                      Reset
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Region filter */}
                 <div className="space-y-2">
-                  <label className="text-sm">Region</label>
+                  <label className="text-xs text-gray-500">Region</label>
                   <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-[200px]">
                       <SelectValue placeholder="All Regions" />
                     </SelectTrigger>
                     <SelectContent>
@@ -243,10 +365,45 @@ export function MapView() {
                     </SelectContent>
                   </Select>
                 </div>
+                
+                {/* Plant Type filter */}
                 <div className="space-y-2">
-                  <label className="text-sm">Severity</label>
+                  <label className="text-xs text-gray-500">Plant Type</label>
+                  <Select value={selectedPlantType} onValueChange={setSelectedPlantType}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="All Plant Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Plant Types</SelectItem>
+                      {plantTypes.map(plant => (
+                        <SelectItem key={plant} value={plant}>{plant}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Detection Type filter */}
+                <div className="space-y-2">
+                  <label className="text-xs text-gray-500">Detection Type</label>
+                  <Select value={selectedDetectionType} onValueChange={setSelectedDetectionType}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="All Detection Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Detection Types</SelectItem>
+                      <SelectItem value="disease">Disease</SelectItem>
+                      <SelectItem value="pest">Pest</SelectItem>
+                      <SelectItem value="drought">Drought</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Severity filter */}
+                <div className="space-y-2">
+                  <label className="text-xs text-gray-500">Severity</label>
                   <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-[200px]">
                       <SelectValue placeholder="All Severities" />
                     </SelectTrigger>
                     <SelectContent>
@@ -257,22 +414,42 @@ export function MapView() {
                     </SelectContent>
                   </Select>
                 </div>
+                
+                {/* Date Range filter */}
+                <div className="space-y-2">
+                  <label className="text-xs text-gray-500">Date Range</label>
+                  <Select value={selectedDateRange} onValueChange={setSelectedDateRange}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="All Time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Time</SelectItem>
+                      <SelectItem value="today">Today</SelectItem>
+                      <SelectItem value="week">Last 7 Days</SelectItem>
+                      <SelectItem value="month">Last 30 Days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="mt-2 text-center text-xs text-gray-500">
+                  Showing {filteredReports.length} of {reports?.length || 0} reports
+                </div>
               </div>
             )}
 
-            {/* Legend */}
+            {/* Updated Legend */}
             <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
               <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
-                <div className="h-3 w-3 rounded-full bg-red-500"></div>
-                <span className="text-xs">High Severity</span>
+                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.disease }}></div>
+                <span className="text-xs">Disease</span>
               </div>
               <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
-                <div className="h-3 w-3 rounded-full bg-amber-500"></div>
-                <span className="text-xs">Medium Severity</span>
+                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.pest }}></div>
+                <span className="text-xs">Pest/Drought</span>
               </div>
               <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
-                <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                <span className="text-xs">Low Severity</span>
+                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.normal }}></div>
+                <span className="text-xs">Normal/Healthy</span>
               </div>
             </div>
           </>
