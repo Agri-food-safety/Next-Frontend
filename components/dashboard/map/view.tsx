@@ -280,7 +280,7 @@ export function MapView() {
         {isClient && (
           <>
             {/* View Mode Preset Controls */}
-            <div className="absolute left-4 top-4 z-10">
+            <div className="absolute left-4 top-4 z-[1000]">
               <div className="flex flex-col gap-2">
                 <div className="rounded-md bg-white p-2 shadow-md">
                   <div className="mb-1 text-xs font-medium text-gray-600">View Mode</div>
@@ -339,6 +339,37 @@ export function MapView() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Move legend to top right */}
+            <div className="absolute bottom-4 right-16 flex flex-col gap-2 z-[1000]">
+              {(activePreset === "all" || activePreset === "disease") && (
+                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
+                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.disease }}></div>
+                  <span className="text-xs">Disease</span>
+                </div>
+              )}
+              
+              {(activePreset === "all" || activePreset === "pest") && (
+                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
+                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.pest }}></div>
+                  <span className="text-xs">Pest</span>
+                </div>
+              )}
+              
+              {(activePreset === "all" || activePreset === "drought") && (
+                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
+                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.drought }}></div>
+                  <span className="text-xs">Drought</span>
+                </div>
+              )}
+              
+              {(activePreset === "all" || presetViewMode === "negative") && (
+                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
+                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.normal }}></div>
+                  <span className="text-xs">Normal/Healthy</span>
+                </div>
+              )}
             </div>
 
             <MapContainer
@@ -414,9 +445,9 @@ export function MapView() {
               })}
             </MapContainer>
 
-            {/* Filter indicator - moved to bottom right to avoid overlap */}
+            {/* Filter indicator - moved to top */}
             {activeFilters > 0 && (
-              <div className="absolute right-4 bottom-24 z-10">
+              <div className="absolute right-4 top-28 z-30">
                 <Badge className="bg-green-600 hover:bg-green-700">
                   {activeFilters} {activeFilters === 1 ? 'filter' : 'filters'} active
                 </Badge>
@@ -427,7 +458,7 @@ export function MapView() {
             <Button
               variant="secondary"
               size="icon"
-              className="absolute right-4 top-4 z-10 bg-white shadow-md hover:bg-green-50"
+              className="absolute right-4 top-4 z-30 bg-white shadow-md hover:bg-green-50"
               onClick={toggleFullScreen}
             >
               {isFullScreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -437,7 +468,7 @@ export function MapView() {
             <Button
               variant="secondary"
               size="icon"
-              className={`absolute right-4 top-16 z-10 bg-white shadow-md hover:bg-green-50 ${
+              className={`absolute right-4 top-16 z-30 bg-white shadow-md hover:bg-green-50 ${
                 activeFilters > 0 ? 'ring-2 ring-green-600' : ''
               }`}
               onClick={toggleFilters}
@@ -447,7 +478,7 @@ export function MapView() {
 
             {/* Enhanced filters panel */}
             {showFilters && (
-              <div className="absolute right-4 top-16 z-10 flex max-h-[80vh] flex-col gap-4 overflow-y-auto rounded-md bg-white p-4 shadow-md">
+              <div className="absolute right-4 top-16 z-40 flex max-h-[80vh] flex-col gap-4 overflow-y-auto rounded-md bg-white p-4 shadow-md">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium">Advanced Filters</h3>
                   {activeFilters > 0 && (
@@ -544,42 +575,11 @@ export function MapView() {
                 </div>
               </div>
             )}
-
-            {/* Updated Legend - dynamic based on active preset */}
-            <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
-              {(activePreset === "all" || activePreset === "disease") && (
-                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.disease }}></div>
-                  <span className="text-xs">Disease</span>
-                </div>
-              )}
-              
-              {(activePreset === "all" || activePreset === "pest") && (
-                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.pest }}></div>
-                  <span className="text-xs">Pest</span>
-                </div>
-              )}
-              
-              {(activePreset === "all" || activePreset === "drought") && (
-                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.drought }}></div>
-                  <span className="text-xs">Drought</span>
-                </div>
-              )}
-              
-              {(activePreset === "all" || presetViewMode === "negative") && (
-                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.normal }}></div>
-                  <span className="text-xs">Normal/Healthy</span>
-                </div>
-              )}
-            </div>
           </>
         )}
         
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/50">
+          <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-50">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         )}
