@@ -421,22 +421,47 @@ export function MapView() {
               {filteredReports.length > 0 && filteredReports.map((report) => {
                 if (!report.gpsLat || !report.gpsLng) return null;
                 
-                // Improved detection type determination
+                // Check which detection types this report has
+                const hasDisease = !!report.disease_detection;
+                const hasPest = !!report.pest_detection;
+                const hasDrought = !!report.drought_detection;
+                
+                // Determine detection type based on active filters first, then fall back to default priority
                 let detectionType = "normal";
                 let condition = "Healthy";
                 let severity = "low";
                 
-                if (report.disease_detection?.name) {
+                // Check if we should prioritize a specific detection type based on selected filter
+                const prioritizeDetection = 
+                  selectedDetectionType !== "all" ? selectedDetectionType : 
+                  activePreset !== "all" ? activePreset : null;
+                
+                // First try to match the prioritized detection type if available in the report
+                if (prioritizeDetection === "disease" && hasDisease) {
                   detectionType = "disease";
-                  condition = report.disease_detection.name;
+                  condition = report.disease_detection?.name || "Disease";
                   severity = "high";
-                } else if (report.pest_detection?.name) {
+                } else if (prioritizeDetection === "pest" && hasPest) {
                   detectionType = "pest";
-                  condition = report.pest_detection.name;
+                  condition = report.pest_detection?.name || "Pest";
                   severity = "medium";
-                } else if (report.drought_detection) {
+                } else if (prioritizeDetection === "drought" && hasDrought) {
                   detectionType = "drought";
-                  condition = `Drought Level ${report.drought_detection.droughtLevel || 'Unknown'}`;
+                  condition = `Drought Level ${report.drought_detection?.droughtLevel || 'Unknown'}`;
+                  severity = "low";
+                } 
+                // If no priority match, fall back to default priority: disease > pest > drought > normal
+                else if (hasDisease) {
+                  detectionType = "disease";
+                  condition = report.disease_detection?.name || "Disease";
+                  severity = "high";
+                } else if (hasPest) {
+                  detectionType = "pest";
+                  condition = report.pest_detection?.name || "Pest";
+                  severity = "medium";
+                } else if (hasDrought) {
+                  detectionType = "drought";
+                  condition = `Drought Level ${report.drought_detection?.droughtLevel || 'Unknown'}`;
                   severity = "low";
                 }
                 
