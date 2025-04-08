@@ -31,8 +31,8 @@ const SEVERITY_COLORS = {
 // Update the color mapping to focus on detection types
 const DETECTION_COLORS = {
   disease: "#ef4444", // red for disease
-  pest: "#f59e0b",    // amber for pests
-  drought: "#f59e0b", // amber for drought
+  pest: "#f97316",    // orange for pests
+  drought: "#a855f7", // purple for drought
   normal: "#10b981",  // green for normal/healthy
   default: "#6366f1"  // indigo for default
 }
@@ -273,7 +273,7 @@ export function MapView() {
   return (
     <Card
       className={`overflow-hidden border-green-100 bg-white/80 backdrop-blur-sm ${
-        isFullScreen ? "fixed inset-0 z-50 m-0 rounded-none border-0" : "flex-1"
+        isFullScreen ? "fixed inset-0 z-100 m-0 rounded-none border-0" : "flex-1"
       }`}
     >
       <div ref={mapRef} className="relative w-full" style={mapContainerStyle as React.CSSProperties}>
@@ -318,7 +318,7 @@ export function MapView() {
                       variant="ghost" 
                       size="sm" 
                       onClick={resetPresetView} 
-                      className="mt-2 h-7 w-full text-xs"
+                      className="mt-2 h-7 w-full text-xs bg-blue-600"
                     >
                       <RefreshCw className="mr-1 h-3 w-3" />
                       Reset View
@@ -343,29 +343,29 @@ export function MapView() {
 
             {/* Move legend to top right */}
             <div className="absolute bottom-4 right-16 flex flex-col gap-2 z-[1000]">
-              {(activePreset === "all" || activePreset === "disease") && (
-                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
+              {(
+                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md text-black">
                   <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.disease }}></div>
                   <span className="text-xs">Disease</span>
                 </div>
               )}
               
-              {(activePreset === "all" || activePreset === "pest") && (
-                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
+              {(
+                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md text-black">
                   <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.pest }}></div>
                   <span className="text-xs">Pest</span>
                 </div>
               )}
               
-              {(activePreset === "all" || activePreset === "drought") && (
-                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
+              {(
+                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md text-black">
                   <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.drought }}></div>
                   <span className="text-xs">Drought</span>
                 </div>
               )}
               
-              {(activePreset === "all" || presetViewMode === "negative") && (
-                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
+              { (
+                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md text-black">
                   <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.normal }}></div>
                   <span className="text-xs">Normal/Healthy</span>
                 </div>
@@ -458,7 +458,7 @@ export function MapView() {
             <Button
               variant="secondary"
               size="icon"
-              className="absolute right-4 top-4 z-30 bg-white shadow-md hover:bg-green-50"
+              className="absolute right-4 top-4 z-[1000] bg-white shadow-md hover:bg-green-50"
               onClick={toggleFullScreen}
             >
               {isFullScreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -478,7 +478,7 @@ export function MapView() {
 
             {/* Enhanced filters panel */}
             {showFilters && (
-              <div className="absolute right-4 top-16 z-40 flex max-h-[80vh] flex-col gap-4 overflow-y-auto rounded-md bg-white p-4 shadow-md">
+              <div className="bg-secondary/10 absolute right-4 top-16 z-40 flex max-h-[80vh] flex-col gap-4 overflow-y-auto rounded-md bg-white p-4 shadow-md">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium">Advanced Filters</h3>
                   {activeFilters > 0 && (
@@ -529,11 +529,11 @@ export function MapView() {
                       <SelectValue placeholder="All Detection Types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Detection Types</SelectItem>
-                      <SelectItem value="disease">Disease</SelectItem>
-                      <SelectItem value="pest">Pest</SelectItem>
-                      <SelectItem value="drought">Drought</SelectItem>
-                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem className="text-black" value="all">All Detection Types</SelectItem>
+                      <SelectItem className="text-black"  value="disease">Disease</SelectItem>
+                      <SelectItem className="text-black"  value="pest">Pest</SelectItem>
+                      <SelectItem className="text-black"  value="drought">Drought</SelectItem>
+                      <SelectItem className="text-black"  value="none">None</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
