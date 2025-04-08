@@ -9,6 +9,7 @@ import dynamic from "next/dynamic"
 import { useReports } from "@/hooks/use-reports"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 // Add Leaflet CSS import
 import "leaflet/dist/leaflet.css"
 
@@ -84,6 +85,10 @@ export function MapView() {
   const [showFilters, setShowFilters] = useState(false)
   const [mapError, setMapError] = useState<string | null>(null)
   
+  // Preset view mode states
+  const [activePreset, setActivePreset] = useState<string>("all") // "all", "disease", "pest", "drought"
+  const [presetViewMode, setPresetViewMode] = useState<string>("all") // "all", "positive", "negative"
+  
   // Algeria's center coordinates
   const ALGERIA_CENTER = [28.0339, 1.6596]
   const ALGERIA_ZOOM = 5
@@ -101,7 +106,9 @@ export function MapView() {
     selectedSeverity !== "all",
     selectedPlantType !== "all",
     selectedDetectionType !== "all",
-    selectedDateRange !== "all"
+    selectedDateRange !== "all",
+    activePreset !== "all",
+    presetViewMode !== "all"
   ].filter(Boolean).length
   
   // Filter reports based on selections
@@ -148,8 +155,26 @@ export function MapView() {
       }
     }
     
+    // Apply preset filtering
+    let presetMatch = true;
+    if (activePreset !== "all") {
+      // Check if report has the condition for the active preset
+      const hasCondition = 
+        activePreset === "disease" ? !!report.disease_detection :
+        activePreset === "pest" ? !!report.pest_detection :
+        activePreset === "drought" ? !!report.drought_detection : 
+        false;
+      
+      // Apply view mode filtering
+      if (presetViewMode === "positive") {
+        presetMatch = hasCondition;
+      } else if (presetViewMode === "negative") {
+        presetMatch = !hasCondition;
+      }
+    }
+    
     // All conditions must match
-    return regionMatch && severityMatch && plantTypeMatch && detectionTypeMatch && dateMatch;
+    return regionMatch && severityMatch && plantTypeMatch && detectionTypeMatch && dateMatch && presetMatch;
   }) || [];
 
   // Reset all filters
@@ -159,6 +184,27 @@ export function MapView() {
     setSelectedPlantType("all");
     setSelectedDetectionType("all");
     setSelectedDateRange("all");
+    setActivePreset("all");
+    setPresetViewMode("all");
+  };
+
+  // Reset preset filters only
+  const resetPresetView = () => {
+    setActivePreset("all");
+    setPresetViewMode("all");
+  };
+
+  // Helper function for getting preset label
+  const getPresetLabel = () => {
+    if (activePreset === "all") return "All Reports";
+    
+    const conditionLabel = activePreset.charAt(0).toUpperCase() + activePreset.slice(1);
+    
+    if (presetViewMode === "all") return `${conditionLabel} - All`;
+    if (presetViewMode === "positive") return `${conditionLabel} - Yes`;
+    if (presetViewMode === "negative") return `${conditionLabel} - No`;
+    
+    return "Custom View";
   };
 
   useEffect(() => {
@@ -233,6 +279,68 @@ export function MapView() {
       <div ref={mapRef} className="relative w-full" style={mapContainerStyle as React.CSSProperties}>
         {isClient && (
           <>
+            {/* View Mode Preset Controls */}
+            <div className="absolute left-4 top-4 z-10">
+              <div className="flex flex-col gap-2">
+                <div className="rounded-md bg-white p-2 shadow-md">
+                  <div className="mb-1 text-xs font-medium text-gray-600">View Mode</div>
+                  <Tabs 
+                    value={activePreset} 
+                    onValueChange={setActivePreset} 
+                    className="w-full"
+                  >
+                    <TabsList className="grid w-full grid-cols-4">
+                      <TabsTrigger value="all">All</TabsTrigger>
+                      <TabsTrigger value="disease">Disease</TabsTrigger>
+                      <TabsTrigger value="pest">Pests</TabsTrigger>
+                      <TabsTrigger value="drought">Drought</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                  
+                  {activePreset !== "all" && (
+                    <div className="mt-2">
+                      <Tabs
+                        value={presetViewMode}
+                        onValueChange={setPresetViewMode}
+                        className="w-full"
+                      >
+                        <TabsList className="grid w-full grid-cols-3">
+                          <TabsTrigger value="all">All</TabsTrigger>
+                          <TabsTrigger value="positive">Yes</TabsTrigger>
+                          <TabsTrigger value="negative">No</TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                    </div>
+                  )}
+                  
+                  {(activePreset !== "all" || presetViewMode !== "all") && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={resetPresetView} 
+                      className="mt-2 h-7 w-full text-xs"
+                    >
+                      <RefreshCw className="mr-1 h-3 w-3" />
+                      Reset View
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Active preset indicator */}
+                <div className="rounded-md bg-white p-2 shadow-md">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-medium text-gray-600">Active View:</div>
+                    <Badge variant={activePreset !== "all" ? "default" : "outline"} className="text-xs">
+                      {getPresetLabel()}
+                    </Badge>
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500">
+                    Showing {filteredReports.length} reports
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <MapContainer
               center={ALGERIA_CENTER}
               zoom={ALGERIA_ZOOM}
@@ -245,8 +353,8 @@ export function MapView() {
               }}
             >
               <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
               />
               <ZoomControl position="bottomright" />
 
@@ -306,9 +414,9 @@ export function MapView() {
               })}
             </MapContainer>
 
-            {/* Filter indicator */}
+            {/* Filter indicator - moved to bottom right to avoid overlap */}
             {activeFilters > 0 && (
-              <div className="absolute left-4 bottom-4 z-10">
+              <div className="absolute right-4 bottom-24 z-10">
                 <Badge className="bg-green-600 hover:bg-green-700">
                   {activeFilters} {activeFilters === 1 ? 'filter' : 'filters'} active
                 </Badge>
@@ -339,13 +447,13 @@ export function MapView() {
 
             {/* Enhanced filters panel */}
             {showFilters && (
-              <div className="absolute left-4 top-4 z-10 flex max-h-[80vh] flex-col gap-4 overflow-y-auto rounded-md bg-white p-4 shadow-md">
+              <div className="absolute right-4 top-16 z-10 flex max-h-[80vh] flex-col gap-4 overflow-y-auto rounded-md bg-white p-4 shadow-md">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium">Filters</h3>
+                  <h3 className="text-sm font-medium">Advanced Filters</h3>
                   {activeFilters > 0 && (
                     <Button variant="ghost" size="sm" onClick={resetFilters} className="h-8 text-xs">
                       <RefreshCw className="mr-1 h-3 w-3" />
-                      Reset
+                      Reset All
                     </Button>
                   )}
                 </div>
@@ -437,20 +545,35 @@ export function MapView() {
               </div>
             )}
 
-            {/* Updated Legend */}
+            {/* Updated Legend - dynamic based on active preset */}
             <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
-              <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
-                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.disease }}></div>
-                <span className="text-xs">Disease</span>
-              </div>
-              <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
-                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.pest }}></div>
-                <span className="text-xs">Pest/Drought</span>
-              </div>
-              <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
-                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.normal }}></div>
-                <span className="text-xs">Normal/Healthy</span>
-              </div>
+              {(activePreset === "all" || activePreset === "disease") && (
+                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
+                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.disease }}></div>
+                  <span className="text-xs">Disease</span>
+                </div>
+              )}
+              
+              {(activePreset === "all" || activePreset === "pest") && (
+                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
+                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.pest }}></div>
+                  <span className="text-xs">Pest</span>
+                </div>
+              )}
+              
+              {(activePreset === "all" || activePreset === "drought") && (
+                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
+                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.drought }}></div>
+                  <span className="text-xs">Drought</span>
+                </div>
+              )}
+              
+              {(activePreset === "all" || presetViewMode === "negative") && (
+                <div className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md">
+                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: DETECTION_COLORS.normal }}></div>
+                  <span className="text-xs">Normal/Healthy</span>
+                </div>
+              )}
             </div>
           </>
         )}
