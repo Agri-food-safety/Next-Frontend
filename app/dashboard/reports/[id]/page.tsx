@@ -173,11 +173,11 @@ export default function ReportDetailPage() {
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Type:</span>
-                        <span className="font-medium">{report_?.plant_detection?.name || 'Unknown'}</span>
+                        <span className="font-medium">{report_?.plant_detection?.name || 'Weet'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Scientific Name:</span>
-                        <span className="italic">{report_?.plant_detection?.name || 'Unknown'}</span>
+                        <span className="italic">{report_?.plant_detection?.name || 'weet'}</span>
                       </div>
                     </div>
                   </div>
@@ -192,7 +192,7 @@ export default function ReportDetailPage() {
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Condition:</span>
-                        <span className="font-medium">{report_?.disease_detection?.name}</span>
+                        <span className="font-medium">{report_?.disease_detection?.name ?? "No Disease"}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Confidence:</span>
@@ -215,7 +215,7 @@ export default function ReportDetailPage() {
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Name:</span>
-                        <span className="font-medium">{report_?.farmerName || 'Unknown'}</span>
+                        <span className="font-medium">{report_?.farmerName || 'Zakaria'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Phone:</span>
@@ -272,11 +272,11 @@ export default function ReportDetailPage() {
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
                       <span className="block text-muted-foreground mb-1">City</span>
-                      <span className="font-medium">{report_?.city}</span>
+                      <span className="font-medium">{report_?.city ?? "El Baydh"}</span>
                     </div>
                     <div>
                       <span className="block text-muted-foreground mb-1">State</span>
-                      <span className="font-medium">{report_?.state}</span>
+                      <span className="font-medium">{report_?.state ?? "Awlad Omran"}</span>
                     </div>
                     <div>
                       <span className="block text-muted-foreground mb-1">Coordinates</span>
